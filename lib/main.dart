@@ -3,6 +3,8 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,13 +15,17 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
+      localizationsDelegates: const [
+        ...AppLocalizations.localizationsDelegates,
+        GlobalMaterialLocalizations.delegate,
+      ],
       title: 'Flutter Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page XD'),
+      // home: const MyHomePage(title: 'Flutter Demo Home Page XD'),
     );
   }
 }
@@ -65,9 +71,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> loadImage() async {
     print('Load image');
-    // const keyName = 'assets/custom_map.jpeg';
+    const keyName = 'assets/custom_map.jpeg';
     // const keyName = 'assets/island.png';
-    const keyName = 'assets/other_map.jpeg';
+    // const keyName = 'assets/other_map.jpeg';
     final data = (await rootBundle.load(keyName));
     final bytes = data.buffer.asUint8List();
     image = await decodeImageFromList(bytes);
@@ -106,7 +112,7 @@ class _MyHomePageState extends State<MyHomePage> {
             }
           },
           child: CustomPaint(
-            size: Size.square(4096),
+            size: Size.square(2048),
             painter: MapPainter(places, image),
           ),
         ),
