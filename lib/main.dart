@@ -1,6 +1,7 @@
-import 'dart:math';
 import 'dart:ui' as ui;
 
+import 'package:cargo_quest_tycoon/core/constants/predefined_cities.dart';
+import 'package:cargo_quest_tycoon/data/models/city.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -15,7 +16,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
+    return MaterialApp(
       localizationsDelegates: const [
         ...AppLocalizations.localizationsDelegates,
         GlobalMaterialLocalizations.delegate,
@@ -25,33 +26,8 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      // home: const MyHomePage(title: 'Flutter Demo Home Page XD'),
+      home: const MyHomePage(title: 'Flutter Demo Home Page XD'),
     );
-  }
-}
-
-class Place {
-  final double x;
-  final double y;
-  final double radius;
-  final Color color;
-
-  Place({
-    required this.x,
-    required this.y,
-    required this.radius,
-    required this.color,
-  });
-
-  bool isTapped(Offset tapPoint) {
-    if (tapPoint.dx > x - radius &&
-        tapPoint.dx < x + radius &&
-        tapPoint.dy > y - radius &&
-        tapPoint.dy < y + radius) {
-      return true;
-    }
-
-    return false;
   }
 }
 
@@ -67,10 +43,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   ui.Image? image;
 
-  List<Place> places = [];
-
   Future<void> loadImage() async {
-    print('Load image');
     const keyName = 'assets/custom_map.jpeg';
     // const keyName = 'assets/island.png';
     // const keyName = 'assets/other_map.jpeg';
@@ -93,48 +66,39 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),
-      body: InteractiveViewer(
-        maxScale: 2.0,
-        minScale: 0.1,
-        constrained: false,
-        // alignment: Alignment.center,
-        child: GestureDetector(
-          onTapUp: (details) {
-            print('Global: ${details.globalPosition}');
-            print('Local: ${details.localPosition}');
-            for (final place in places) {
-              if (place.isTapped(details.globalPosition)) {
-                print('Is tapped with global position');
-              }
-              if (place.isTapped(details.localPosition)) {
-                print('Is tapped with local position');
-              }
-            }
-          },
-          child: CustomPaint(
-            size: Size.square(2048),
-            painter: MapPainter(places, image),
-          ),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          places.add(
-            Place(
-              x: Random().nextInt(2048).toDouble(),
-              y: Random().nextInt(2048).toDouble(),
-              color: Colors.black,
-              radius: Random().nextInt(50).toDouble(),
-            ),
-          );
-        },
-      ),
+      body: TwoDimensional(
+          horizontalDetails: horizontalDetails,
+          verticalDetails: verticalDetails,
+          viewportBuilder: viewportBuilder),
     );
+    //   body: InteractiveViewer(
+    //     maxScale: 2.0,
+    //     minScale: 0.1,
+    //     constrained: false,
+    //     // alignment: Alignment.center,
+    //     child: GestureDetector(
+    //       onTapUp: (details) {
+    //         for (final place in predefinedCities) {
+    //           if (place.isTapped(details.globalPosition)) {
+    //             print('Is tapped with global position');
+    //           }
+    //           if (place.isTapped(details.localPosition)) {
+    //             print('Is tapped with local position');
+    //           }
+    //         }
+    //       },
+    //       child: CustomPaint(
+    //         size: Size.square(2048),
+    //         painter: MapPainter(predefinedCities, image),
+    //       ),
+    //     ),
+    //   ),
+    // );
   }
 }
 
 class MapPainter extends CustomPainter {
-  final List<Place> places;
+  final List<City> places;
   final ui.Image? image;
 
   MapPainter(this.places, this.image);
@@ -142,10 +106,7 @@ class MapPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final _image = image;
-    print(_image != null);
     if (_image != null) {
-      print('${_image.height} - ${_image.width}');
-
       canvas.drawImage(
         _image,
         Offset.zero,
@@ -153,13 +114,11 @@ class MapPainter extends CustomPainter {
       );
     }
 
-    for (final place in places) {
-      print('${place.x} - ${place.y}');
-
+    for (final city in places) {
       canvas.drawCircle(
-        Offset(place.x, place.y),
-        place.radius,
-        Paint()..color = place.color,
+        Offset(city.position.x, city.position.y),
+        20,
+        Paint()..color = Colors.white,
       );
     }
   }
