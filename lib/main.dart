@@ -1,7 +1,10 @@
+import 'dart:math';
 import 'dart:ui' as ui;
 
+import 'package:cargo_quest_tycoon/core/constants/game_constants.dart';
 import 'package:cargo_quest_tycoon/core/constants/predefined_cities.dart';
 import 'package:cargo_quest_tycoon/data/models/city.dart';
+import 'package:cargo_quest_tycoon/widgets/two_dimensional_grid_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -25,6 +28,9 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
+      ),
+      scrollBehavior: const MaterialScrollBehavior().copyWith(
+        dragDevices: ui.PointerDeviceKind.values.toSet(),
       ),
       home: const MyHomePage(title: 'Flutter Demo Home Page XD'),
     );
@@ -66,10 +72,35 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),
-      body: TwoDimensional(
-          horizontalDetails: horizontalDetails,
-          verticalDetails: verticalDetails,
-          viewportBuilder: viewportBuilder),
+      body: TwoDimensionalGridView(
+        diagonalDragBehavior: DiagonalDragBehavior.free,
+        itemHeight: GameConstants.mapTileSizeX,
+        itemWidth: GameConstants.mapTileSizeY,
+        delegate: TwoDimensionalChildBuilderDelegate(
+          maxXIndex: GameConstants.mapXSize - 1,
+          maxYIndex: GameConstants.mapYSize - 1,
+          builder: (context, vicinity) {
+            final city = defaultMapTiles.where((element) {
+              return element.position.x == vicinity.xIndex &&
+                  element.position.y == vicinity.yIndex;
+            }).firstOrNull;
+            return Container(
+              height: GameConstants.mapTileSizeY,
+              width: GameConstants.mapTileSizeX,
+              color: city?.type.color,
+              child: Center(
+                child: Text(
+                  '${city?.type.name}',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 20,
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
     );
     //   body: InteractiveViewer(
     //     maxScale: 2.0,
