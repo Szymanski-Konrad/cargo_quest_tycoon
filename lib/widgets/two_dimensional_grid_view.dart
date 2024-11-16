@@ -18,7 +18,12 @@ class TwoDimensionalGridView extends TwoDimensionalScrollView {
     super.dragStartBehavior = DragStartBehavior.start,
     super.keyboardDismissBehavior = ScrollViewKeyboardDismissBehavior.manual,
     super.clipBehavior = Clip.hardEdge,
+    this.itemHeight = 200.0,
+    this.itemWidth = 200.0,
   }) : super(delegate: delegate);
+
+  final double itemHeight;
+  final double itemWidth;
 
   @override
   Widget buildViewport(
@@ -35,6 +40,8 @@ class TwoDimensionalGridView extends TwoDimensionalScrollView {
       delegate: delegate as TwoDimensionalChildBuilderDelegate,
       cacheExtent: cacheExtent,
       clipBehavior: clipBehavior,
+      itemHeight: itemHeight,
+      itemWidth: itemWidth,
     );
   }
 }
@@ -50,7 +57,12 @@ class TwoDimensionalGridViewport extends TwoDimensionalViewport {
     required super.mainAxis,
     super.cacheExtent,
     super.clipBehavior = Clip.hardEdge,
+    this.itemHeight = 200.0,
+    this.itemWidth = 200.0,
   });
+
+  final double itemHeight;
+  final double itemWidth;
 
   @override
   RenderTwoDimensionalViewport createRenderObject(BuildContext context) {
@@ -64,6 +76,8 @@ class TwoDimensionalGridViewport extends TwoDimensionalViewport {
       childManager: context as TwoDimensionalChildManager,
       cacheExtent: cacheExtent,
       clipBehavior: clipBehavior,
+      itemHeight: itemHeight,
+      itemWidth: itemWidth,
     );
   }
 
@@ -95,7 +109,12 @@ class RenderTwoDimensionalGridViewport extends RenderTwoDimensionalViewport {
     required super.childManager,
     super.cacheExtent,
     super.clipBehavior = Clip.hardEdge,
+    this.itemHeight = 200.0,
+    this.itemWidth = 200.0,
   }) : super(delegate: delegate);
+
+  final double itemHeight;
+  final double itemWidth;
 
   @override
   void layoutChildSequence() {
@@ -109,20 +128,22 @@ class RenderTwoDimensionalGridViewport extends RenderTwoDimensionalViewport {
     final int maxRowIndex = builderDelegate.maxYIndex!;
     final int maxColumnIndex = builderDelegate.maxXIndex!;
 
-    final int leadingColumn = math.max((horizontalPixels / 200).floor(), 0);
-    final int leadingRow = math.max((verticalPixels / 200).floor(), 0);
+    final int leadingColumn =
+        math.max((horizontalPixels / itemHeight).floor(), 0);
+    final int leadingRow = math.max((verticalPixels / itemWidth).floor(), 0);
     final int trailingColumn = math.min(
-      ((horizontalPixels + viewportWidth) / 200).ceil(),
+      ((horizontalPixels + viewportWidth) / itemHeight).ceil(),
       maxColumnIndex,
     );
     final int trailingRow = math.min(
-      ((verticalPixels + viewportHeight) / 200).ceil(),
+      ((verticalPixels + viewportHeight) / itemWidth).ceil(),
       maxRowIndex,
     );
 
-    double xLayoutOffset = (leadingColumn * 200) - horizontalOffset.pixels;
+    double xLayoutOffset =
+        (leadingColumn * itemWidth) - horizontalOffset.pixels;
     for (int column = leadingColumn; column <= trailingColumn; column++) {
-      double yLayoutOffset = (leadingRow * 200) - verticalOffset.pixels;
+      double yLayoutOffset = (leadingRow * itemHeight) - verticalOffset.pixels;
       for (int row = leadingRow; row <= trailingRow; row++) {
         final ChildVicinity vicinity =
             ChildVicinity(xIndex: column, yIndex: row);
@@ -132,19 +153,19 @@ class RenderTwoDimensionalGridViewport extends RenderTwoDimensionalViewport {
         // Subclasses only need to set the normalized layout offset. The super
         // class adjusts for reversed axes.
         parentDataOf(child).layoutOffset = Offset(xLayoutOffset, yLayoutOffset);
-        yLayoutOffset += 200;
+        yLayoutOffset += itemHeight;
       }
-      xLayoutOffset += 200;
+      xLayoutOffset += itemWidth;
     }
 
     // Set the min and max scroll extents for each axis.
-    final double verticalExtent = 200 * (maxRowIndex + 1);
+    final double verticalExtent = itemWidth * (maxRowIndex + 1);
     verticalOffset.applyContentDimensions(
       0.0,
       clampDouble(
           verticalExtent - viewportDimension.height, 0.0, double.infinity),
     );
-    final double horizontalExtent = 200 * (maxColumnIndex + 1);
+    final double horizontalExtent = itemHeight * (maxColumnIndex + 1);
     horizontalOffset.applyContentDimensions(
       0.0,
       clampDouble(
