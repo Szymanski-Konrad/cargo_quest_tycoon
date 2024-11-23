@@ -8,7 +8,9 @@ environment:
   sdk: ^3.5.3
 
 dependencies:
+  collection: ^1.18.0
   cupertino_icons: ^1.0.8
+  flame: ^1.21.0
   flutter:
     sdk: flutter
   flutter_bloc: ^8.1.6

@@ -6,12 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 class TwoDimensionalGridView extends TwoDimensionalScrollView {
-  const TwoDimensionalGridView({
+  TwoDimensionalGridView({
     super.key,
     super.primary,
     super.mainAxis = Axis.vertical,
-    super.verticalDetails = const ScrollableDetails.vertical(),
-    super.horizontalDetails = const ScrollableDetails.horizontal(),
     required TwoDimensionalChildBuilderDelegate delegate,
     super.cacheExtent,
     super.diagonalDragBehavior = DiagonalDragBehavior.none,
@@ -20,10 +18,34 @@ class TwoDimensionalGridView extends TwoDimensionalScrollView {
     super.clipBehavior = Clip.hardEdge,
     this.itemHeight = 200.0,
     this.itemWidth = 200.0,
-  }) : super(delegate: delegate);
+  }) : super(
+          delegate: delegate,
+          horizontalDetails: ScrollableDetails.horizontal(
+            controller: ScrollController(
+              initialScrollOffset: _calculateCenterOffset(
+                delegate.maxXIndex! + 1, // Total rows
+                itemHeight,
+              ),
+            ),
+          ),
+          verticalDetails: ScrollableDetails.vertical(
+            controller: ScrollController(
+              initialScrollOffset: _calculateCenterOffset(
+                delegate.maxYIndex! + 1, // Total rows
+                itemHeight,
+              ),
+            ),
+          ),
+        );
 
   final double itemHeight;
   final double itemWidth;
+
+  // Helper method to calculate center offset
+  static double _calculateCenterOffset(int totalItems, double itemSize) {
+    // This will be calculated when the layout is built
+    return 0.0; // Initial value, will be updated in RenderObject
+  }
 
   @override
   Widget buildViewport(
