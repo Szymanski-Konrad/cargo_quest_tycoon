@@ -1,5 +1,7 @@
 import 'package:cargo_quest_tycoon/core/constants/game_constants.dart';
 import 'package:cargo_quest_tycoon/data/enums/map_tile_type.dart';
+import 'package:cargo_quest_tycoon/game/bloc/game_bloc.dart';
+import 'package:cargo_quest_tycoon/game/game_alert.dart';
 import 'package:cargo_quest_tycoon/game/game_vehicle.dart';
 import 'package:cargo_quest_tycoon/game/transport_world.dart';
 import 'package:flame/camera.dart';
@@ -11,26 +13,15 @@ import 'package:collection/collection.dart';
 class TransportGame extends FlameGame<TransportWorld>
     with DragCallbacks, TapDetector {
   TransportGame({
+    required this.gameBloc,
     required TransportWorld world,
     required CameraComponent camera,
-  }) : super(world: world, camera: camera) {
-    // camera.viewport.position = Vector2.all(-GameConstants.mapTileSize);
-  }
+  }) : super(world: world, camera: camera);
+
+  final GameBloc gameBloc;
 
   Vector2? targetPosition = Vector2.all(0);
   static const speed = 200.0;
-
-  // @override
-  // bool containsLocalPoint(Vector2 point) {
-  //   print('Tapped point: $point');
-  //   final isTrue = point.x >= 0 &&
-  //       point.y >= 0 &&
-  //       point.x < canvasSize.x &&
-  //       point.y < canvasSize.y;
-  //   print('Is true: $isTrue');
-  //   return true;
-  //   return isTrue;
-  // }
 
   @override
   void onTapDown(TapDownInfo info) {
@@ -42,7 +33,6 @@ class TransportGame extends FlameGame<TransportWorld>
         .firstWhereOrNull((item) => item is GameVehicle) as GameVehicle?;
     if (gameVehicle != null) {
       print('Tapped area with vehicle');
-      // gameVehicle.onTapUp(event);
       super.onTapDown(info);
       return;
     }
@@ -53,6 +43,14 @@ class TransportGame extends FlameGame<TransportWorld>
       world.addTruck(tappedTile.position);
     }
     super.onTapDown(info);
+  }
+
+  void showAlert(String message) {
+    print('Showing alert: $message');
+    children.whereType<AlertComponent>().forEach((alert) {
+      alert.removeFromParent();
+    });
+    add(AlertComponent(message: message));
   }
 
   @override

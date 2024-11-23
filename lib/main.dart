@@ -6,6 +6,7 @@ import 'package:cargo_quest_tycoon/core/constants/predefined_cities.dart';
 import 'package:cargo_quest_tycoon/data/models/city.dart';
 import 'package:cargo_quest_tycoon/game/transport_game.dart';
 import 'package:cargo_quest_tycoon/game/transport_world.dart';
+import 'package:cargo_quest_tycoon/game_view.dart';
 import 'package:cargo_quest_tycoon/widgets/two_dimensional_grid_view.dart';
 import 'package:flame/camera.dart';
 import 'package:flame/components.dart';
@@ -24,15 +25,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final myWorld = TransportWorld();
-    final myGame = TransportGame(
-      world: myWorld,
-      camera: CameraComponent(
-        world: myWorld,
-        viewport: MaxViewport(),
-        viewfinder: Viewfinder()..anchor = Anchor.topLeft,
-      ),
-    );
     return MaterialApp(
       localizationsDelegates: const [
         ...AppLocalizations.localizationsDelegates,
@@ -46,7 +38,7 @@ class MyApp extends StatelessWidget {
       scrollBehavior: const MaterialScrollBehavior().copyWith(
         dragDevices: ui.PointerDeviceKind.values.toSet(),
       ),
-      home: GameWidget(game: myGame),
+      home: const CargoQuestGame(),
     );
   }
 }

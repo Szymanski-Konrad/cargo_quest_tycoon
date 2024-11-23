@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:ui' as ui;
+import 'package:cargo_quest_tycoon/game/bloc/game_bloc.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
@@ -70,9 +71,13 @@ class GameVehicle extends PositionComponent
   @override
   void onTapDown(TapDownEvent event) {
     print('Tapped vehicle');
+    generateNewRoute();
+    super.onTapDown(event);
+  }
+
+  void generateNewRoute() {
     final (path, pathId) = world.generatePath(position);
     setDestination(path, pathId);
-    super.onTapDown(event);
   }
 
   void setDestination(List<Vector2> path, String id) {
@@ -99,6 +104,10 @@ class GameVehicle extends PositionComponent
         if (currentPathIndex >= path.length) {
           isMoving = false;
           if (pathId != null) world.removePath(pathId!);
+          final coins = path.length;
+          world.game.gameBloc.add(GameGainCoins(coins));
+          world.game.showAlert('Truck delivered $coins coins');
+          generateNewRoute();
         }
       }
     }
