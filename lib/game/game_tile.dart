@@ -2,11 +2,14 @@ import 'dart:ui' as ui;
 
 import 'package:cargo_quest_tycoon/core/constants/game_constants.dart';
 import 'package:cargo_quest_tycoon/data/enums/map_tile_type.dart';
-import 'package:flame/game.dart';
+import 'package:cargo_quest_tycoon/game/transport_game.dart';
+import 'package:cargo_quest_tycoon/game/transport_world.dart';
 import 'package:flame/components.dart';
+import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 
-class GameTile extends PositionComponent {
+class GameTile extends PositionComponent
+    with HasWorldReference<TransportWorld>, TapCallbacks {
   final MapTileType type;
   final Vector2 gridPosition;
   final int number;
@@ -20,7 +23,17 @@ class GameTile extends PositionComponent {
   }) : super(
           size: Vector2.all(GameConstants.mapTileSize),
           position: gridPosition * (GameConstants.mapTileSize),
-        ) {}
+        );
+
+  @override
+  void onTapUp(TapUpEvent event) {
+    print('Tapped on tile $number, type: $type');
+    if (type == MapTileType.city) {
+      world.addTruck(position);
+    }
+
+    super.onTapUp(event);
+  }
 
   @override
   void render(Canvas canvas) {
@@ -57,17 +70,6 @@ class GameTile extends PositionComponent {
           break;
       }
     }
-
-    final relative = position.toPositionedRect(size);
-
-    final test = Rect.fromLTRB(
-      canvas.getDestinationClipBounds().left - canvas.getLocalClipBounds().left,
-      canvas.getDestinationClipBounds().top - canvas.getLocalClipBounds().top,
-      canvas.getDestinationClipBounds().right -
-          canvas.getLocalClipBounds().right,
-      canvas.getDestinationClipBounds().bottom -
-          canvas.getLocalClipBounds().bottom,
-    );
 
     final rect = Offset.zero & size.toSize();
 

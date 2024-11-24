@@ -9,12 +9,9 @@ import 'package:cargo_quest_tycoon/game/path_component.dart';
 import 'package:cargo_quest_tycoon/game/path_finder.dart';
 import 'package:cargo_quest_tycoon/game/transport_game.dart';
 import 'package:collection/collection.dart';
-import 'package:flame/camera.dart';
 import 'package:flame/events.dart' as flame_events;
-import 'package:flame/game.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:uuid/uuid.dart';
 
 class TransportWorld extends World
@@ -61,10 +58,8 @@ class TransportWorld extends World
 
   void addTruck(Vector2 position) {
     if (game.gameBloc.state.coins < 500) {
-      print('Not enough coins');
       return;
     }
-    ;
     final (path, pathId) = generatePath(position);
     if (path.isEmpty) {
       print('No path found');
@@ -72,7 +67,7 @@ class TransportWorld extends World
     }
     GameVehicle truck = GameVehicle(position: position);
     truck.setDestination(path, pathId);
-    game.gameBloc.add(GameGainCoins(-500));
+    game.gameBloc.add(const GameGainCoins(-500));
     add(truck);
   }
 
@@ -99,18 +94,19 @@ class TransportWorld extends World
 
     // Generate map
     int number = 1;
-    final center = GameConstants.mapSize / 2.ceil();
-    for (var y = 0; y < GameConstants.mapYSize; y++) {
+    final center = (GameConstants.mapSize / 2).ceil();
+    final xHalf = (GameConstants.mapXSize / 2).ceil();
+    final yHalf = (GameConstants.mapYSize / 2).ceil();
+    for (var y = -yHalf; y < GameConstants.mapYSize - yHalf; y++) {
       final row = <GameTile>[];
-      for (var x = 0; x < GameConstants.mapXSize; x++) {
+      for (var x = -xHalf; x < GameConstants.mapXSize - xHalf; x++) {
         final tile = GameTile(
           number: number,
-          type: number == center
-              ? MapTileType.headquarter
-              : _generateTileType(x, y),
+          type:
+              number == center ? MapTileType.headquarter : _generateTileType(),
           gridPosition: Vector2(
-            (x + 0).toDouble(),
-            (y + 0).toDouble(),
+            x.toDouble(),
+            y.toDouble(),
           ),
         );
         row.add(tile);
@@ -121,7 +117,7 @@ class TransportWorld extends World
     }
   }
 
-  MapTileType _generateTileType(int x, int y) {
+  MapTileType _generateTileType() {
     final random = Random();
     final value = random.nextDouble();
 
@@ -132,15 +128,5 @@ class TransportWorld extends World
     if (value < 0.7) return MapTileType.road;
     if (value < 0.8) return MapTileType.city;
     return MapTileType.empty;
-  }
-
-  @override
-  void update(double dt) {
-    super.update(dt);
-  }
-
-  @override
-  void render(Canvas canvas) {
-    super.render(canvas);
   }
 }

@@ -4,7 +4,7 @@ abstract class GameConstants {
 
   /// Number of tiles on the map
   static const int mapSize = mapXSize * mapYSize;
-  static const int mapXSize = 25;
+  static const int mapXSize = 30;
   static const int mapYSize = 20;
 
   /// Map tile size in pixels

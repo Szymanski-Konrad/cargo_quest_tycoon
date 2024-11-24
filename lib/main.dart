@@ -1,23 +1,12 @@
-import 'dart:math';
 import 'dart:ui' as ui;
 
-import 'package:cargo_quest_tycoon/core/constants/game_constants.dart';
-import 'package:cargo_quest_tycoon/core/constants/predefined_cities.dart';
-import 'package:cargo_quest_tycoon/data/models/city.dart';
-import 'package:cargo_quest_tycoon/game/transport_game.dart';
-import 'package:cargo_quest_tycoon/game/transport_world.dart';
 import 'package:cargo_quest_tycoon/game_view.dart';
-import 'package:cargo_quest_tycoon/widgets/two_dimensional_grid_view.dart';
-import 'package:flame/camera.dart';
-import 'package:flame/components.dart';
-import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {

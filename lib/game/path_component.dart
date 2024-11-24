@@ -1,7 +1,6 @@
 import 'package:cargo_quest_tycoon/game/transport_world.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/cupertino.dart';
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
 class PathComponent extends PositionComponent
@@ -38,7 +37,6 @@ class PathComponent extends PositionComponent
         ..strokeJoin = StrokeJoin.round
         ..strokeWidth = 2,
     );
-    // TODO: implement render
     super.render(canvas);
   }
 }

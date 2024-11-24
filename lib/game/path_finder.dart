@@ -30,6 +30,9 @@ class PathNode {
 }
 
 class PathFinder {
+  final xHalf = (GameConstants.mapXSize / 2).ceil();
+  final yHalf = (GameConstants.mapYSize / 2).ceil();
+
   final List<List<GameTile>> map;
   final double straightCost = 1.0;
 
@@ -120,7 +123,9 @@ class PathFinder {
       final newPos = node.position + dir;
 
       if (_isValidPosition(newPos)) {
-        final tileType = map[newPos.y.toInt()][newPos.x.toInt()].type;
+        final tileType = map[newPos.y.toInt() + yHalf.ceil()]
+                [newPos.x.toInt() + xHalf.ceil()]
+            .type;
         final movementCost = terrainCosts[tileType] ?? double.infinity;
 
         // Skip unwalkable tiles
@@ -138,16 +143,15 @@ class PathFinder {
   }
 
   bool _isValidPosition(Vector2 pos) {
-    return pos.x >= 0 &&
-        pos.x < map[0].length &&
-        pos.y >= 0 &&
-        pos.y < map.length;
+    return pos.x >= -xHalf && pos.x < xHalf && pos.y >= -yHalf && pos.y < yHalf;
   }
 
   double _calculateMovementCost(Vector2 from, Vector2 to) {
     // Get terrain costs for both tiles
-    final fromType = map[from.y.toInt()][from.x.toInt()].type;
-    final toType = map[to.y.toInt()][to.x.toInt()].type;
+    final fromType =
+        map[from.y.toInt() + yHalf.ceil()][from.x.toInt() + xHalf.ceil()].type;
+    final toType =
+        map[to.y.toInt() + yHalf.ceil()][to.x.toInt() + xHalf.ceil()].type;
 
     final fromCost = terrainCosts[fromType] ?? double.infinity;
     final toCost = terrainCosts[toType] ?? double.infinity;

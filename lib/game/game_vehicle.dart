@@ -5,20 +5,11 @@ import 'package:flame/collisions.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 
-import 'package:cargo_quest_tycoon/core/constants/game_constants.dart';
-import 'package:cargo_quest_tycoon/data/enums/map_tile_type.dart';
-import 'package:cargo_quest_tycoon/game/game_tile.dart';
-import 'package:cargo_quest_tycoon/game/path_finder.dart';
-import 'package:cargo_quest_tycoon/game/transport_game.dart';
 import 'package:cargo_quest_tycoon/game/transport_world.dart';
 import 'package:flame/components.dart';
 
 class GameVehicle extends PositionComponent
-    with
-        HasWorldReference<TransportWorld>,
-        TapCallbacks,
-        HoverCallbacks,
-        GestureHitboxes {
+    with HasWorldReference<TransportWorld>, TapCallbacks, GestureHitboxes {
   final Vector2 velocity = Vector2.zero();
   final List<Vector2> path = [];
   String? pathId;
@@ -38,41 +29,14 @@ class GameVehicle extends PositionComponent
     super.onLoad();
     hitbox =
         RectangleHitbox(size: Vector2(32, 32), position: Vector2(-16, -16));
-    hitbox.paint.color = baseColor;
-    hitbox.renderShape = true;
     add(hitbox);
   }
 
-  static final _temporaryPoint = Vector2.zero();
-
-  // @override
-  // bool containsLocalPoint(Vector2 point) {
-  //   final isTrue = hitboxes.any(
-  //     (hitbox) => hitbox.containsLocalPoint(
-  //       hitbox.parentToLocal(point, output: _temporaryPoint),
-  //     ),
-  //   );
-  //   print('Vehicle contains point: $isTrue');
-  //   return isTrue;
-  // }
-
   @override
-  void onHoverEnter() {
-    hitbox.paint.color = hoverColor;
-    super.onHoverEnter();
-  }
-
-  @override
-  void onHoverExit() {
-    hitbox.paint.color = baseColor;
-    super.onHoverExit();
-  }
-
-  @override
-  void onTapDown(TapDownEvent event) {
-    print('Tapped vehicle');
+  void onTapUp(TapUpEvent event) {
+    print('Tapped on vehicle');
     generateNewRoute();
-    super.onTapDown(event);
+    super.onTapUp(event);
   }
 
   void generateNewRoute() {
@@ -104,49 +68,48 @@ class GameVehicle extends PositionComponent
         if (currentPathIndex >= path.length) {
           isMoving = false;
           if (pathId != null) world.removePath(pathId!);
-          final coins = path.length;
+          final coins = path.length * 3;
           world.game.gameBloc.add(GameGainCoins(coins));
           world.game.showAlert('Truck delivered $coins coins');
-          generateNewRoute();
         }
+      }
+    }
+    if (!isMoving) {
+      if (waitTime < 5) {
+        waitTime += dt;
+      } else {
+        waitTime = 0;
+        generateNewRoute();
       }
     }
   }
 
+  double waitTime = 0;
+
   @override
   void render(ui.Canvas canvas) {
-    if (isMoving) {
-      canvas.drawCircle(
-          Offset.zero, 16, ui.Paint()..color = ui.Color(0xFF00FF00));
-      ui.ParagraphBuilder builder = ui.ParagraphBuilder(ui.ParagraphStyle(
-        textAlign: TextAlign.center,
-        fontSize: 10,
-      ))
-        ..pushStyle(ui.TextStyle(
-            color: Colors.white,
-            background: ui.Paint()..color = ui.Color(0xFF000000)))
-        ..addText('(X: ${position.x.toInt()}, Y: ${position.y.toInt()})');
+    canvas.drawCircle(
+      Offset.zero,
+      16,
+      ui.Paint()
+        ..color =
+            isMoving ? const ui.Color(0xFF00FF00) : const Color(0xFFFF0000),
+    );
+    ui.ParagraphBuilder builder = ui.ParagraphBuilder(ui.ParagraphStyle(
+      textAlign: TextAlign.center,
+      fontSize: 10,
+    ))
+      ..pushStyle(ui.TextStyle(
+          color: Colors.white,
+          background: ui.Paint()..color = const ui.Color(0xFF000000)))
+      ..addText(isMoving
+          ? '(X: ${position.x.toInt()}, Y: ${position.y.toInt()})'
+          : 'Waiting: ${waitTime.toStringAsFixed(2)}s');
 
-      final paragraph = builder.build()
-        ..layout(ui.ParagraphConstraints(width: size.x * 3));
+    final paragraph = builder.build()
+      ..layout(ui.ParagraphConstraints(width: size.x * 3));
 
-      canvas.drawParagraph(paragraph, Offset.zero);
-    } else {
-      canvas.drawCircle(Offset.zero, 16, Paint()..color = Color(0xFFFF0000));
-    }
-
-    // if (path.isNotEmpty) {
-    //   for (var i = 0; i < path.length - 1; i++) {
-    //     final start = path[i].toOffset();
-    //     final end = path[i + 1].toOffset();
-    //     canvas.drawLine(
-    //         start,
-    //         end,
-    //         Paint()
-    //           ..color = Color(0xFF0000FF)
-    //           ..strokeWidth = 20);
-    //   }
-    // }
+    canvas.drawParagraph(paragraph, Offset.zero);
 
     super.render(canvas);
   }

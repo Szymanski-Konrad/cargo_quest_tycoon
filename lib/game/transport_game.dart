@@ -1,17 +1,14 @@
-import 'package:cargo_quest_tycoon/core/constants/game_constants.dart';
 import 'package:cargo_quest_tycoon/data/enums/map_tile_type.dart';
 import 'package:cargo_quest_tycoon/game/bloc/game_bloc.dart';
 import 'package:cargo_quest_tycoon/game/game_alert.dart';
 import 'package:cargo_quest_tycoon/game/game_vehicle.dart';
 import 'package:cargo_quest_tycoon/game/transport_world.dart';
-import 'package:flame/camera.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:collection/collection.dart';
 
-class TransportGame extends FlameGame<TransportWorld>
-    with DragCallbacks, TapDetector {
+class TransportGame extends FlameGame<TransportWorld> with DragCallbacks {
   TransportGame({
     required this.gameBloc,
     required TransportWorld world,
@@ -23,30 +20,7 @@ class TransportGame extends FlameGame<TransportWorld>
   Vector2? targetPosition = Vector2.all(0);
   static const speed = 200.0;
 
-  @override
-  void onTapDown(TapDownInfo info) {
-    final componenetsAtPoint =
-        componentsAtPoint(info.eventPosition.widget).toList();
-    print(
-        'Tapped components = ${componenetsAtPoint.map((item) => item.runtimeType).toList()}');
-    final gameVehicle = componenetsAtPoint
-        .firstWhereOrNull((item) => item is GameVehicle) as GameVehicle?;
-    if (gameVehicle != null) {
-      print('Tapped area with vehicle');
-      super.onTapDown(info);
-      return;
-    }
-    final tappedTile = world.findClosestTile(info.eventPosition.widget);
-
-    if (tappedTile != null && tappedTile.type == MapTileType.city) {
-      print('Adding truck');
-      world.addTruck(tappedTile.position);
-    }
-    super.onTapDown(info);
-  }
-
   void showAlert(String message) {
-    print('Showing alert: $message');
     children.whereType<AlertComponent>().forEach((alert) {
       alert.removeFromParent();
     });

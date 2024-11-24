@@ -37,7 +37,7 @@ class GameView extends StatelessWidget {
                 camera: CameraComponent(
                   world: myWorld,
                   viewport: MaxViewport(),
-                  viewfinder: Viewfinder()..anchor = Anchor.topLeft,
+                  // viewfinder: Viewfinder()..anchor = Anchor.topLeft,
                 ),
               );
             },

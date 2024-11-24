@@ -1,7 +1,4 @@
-import 'dart:math';
-
 import 'package:cargo_quest_tycoon/data/enums/map_tile_type.dart';
-import 'package:cargo_quest_tycoon/data/models/city.dart';
 import 'package:cargo_quest_tycoon/data/models/map_tile.dart';
 import 'package:cargo_quest_tycoon/data/models/map_tile_position.dart';
 
