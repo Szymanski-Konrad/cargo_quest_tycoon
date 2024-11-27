@@ -1,0 +1,53 @@
+import 'package:cargo_quest_tycoon/data/enums/vehicle_type.dart';
+import 'package:cargo_quest_tycoon/data/models/vehicle.dart';
+
+List<Vehicle> predefinedVehicles = [
+  Vehicle(
+    name: 'Default',
+    model: 'Cheap',
+    fuelPerPixel: 0.75,
+    fuelCapacity: 600,
+    currentFuelLevel: 600,
+    maxSpeed: 60,
+    maxCargoWeight: 15,
+    cost: 500,
+    preferredVehicleType: VehicleType.container,
+    otherCargoTypeEffience: 0.9,
+  ),
+  Vehicle(
+    name: 'Speedster',
+    model: 'Fast',
+    fuelPerPixel: 1,
+    fuelCapacity: 300,
+    currentFuelLevel: 300,
+    maxSpeed: 80,
+    maxCargoWeight: 10,
+    cost: 1000,
+    preferredVehicleType: VehicleType.tanker,
+    otherCargoTypeEffience: 0.8,
+  ),
+  Vehicle(
+    name: 'Heavy Hauler',
+    model: 'Strong',
+    fuelPerPixel: 3,
+    fuelCapacity: 1000,
+    currentFuelLevel: 700,
+    maxSpeed: 40,
+    maxCargoWeight: 30,
+    cost: 1500,
+    preferredVehicleType: VehicleType.flatbed,
+    otherCargoTypeEffience: 0.85,
+  ),
+  Vehicle(
+    name: 'Eco Mover',
+    model: 'Green',
+    fuelPerPixel: 0.25,
+    fuelCapacity: 400,
+    currentFuelLevel: 400,
+    maxSpeed: 70,
+    maxCargoWeight: 20,
+    cost: 800,
+    preferredVehicleType: VehicleType.container,
+    otherCargoTypeEffience: 0.95,
+  ),
+];

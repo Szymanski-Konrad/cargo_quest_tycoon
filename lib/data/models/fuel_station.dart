@@ -13,9 +13,9 @@ class FuelStation with _$FuelStation {
     required String name,
     required MapTilePosition location,
     required double fuelCapacity,
-    required int currentFuelLevel,
-    required int fuelRefillRate,
-    required int vehicleRefillRate,
+    required double currentFuelLevel,
+    required double fuelRefillRate,
+    required double vehicleRefillRate,
   }) = _FuelStation;
 
   factory FuelStation.fromJson(Map<String, dynamic> json) =>

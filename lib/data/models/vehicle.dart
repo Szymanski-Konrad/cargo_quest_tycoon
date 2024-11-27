@@ -1,3 +1,4 @@
+import 'package:cargo_quest_tycoon/data/enums/map_tile_type.dart';
 import 'package:cargo_quest_tycoon/data/enums/vehicle_part_type.dart';
 import 'package:cargo_quest_tycoon/data/enums/vehicle_status.dart';
 import 'package:cargo_quest_tycoon/data/enums/vehicle_type.dart';
@@ -16,13 +17,17 @@ class Vehicle with _$Vehicle {
     required String name,
     required String model,
     @Default([]) List<VehiclePart> parts,
-    required double fuelConsumption,
-    required double fuelCapacity,
-    required double maxSpeed,
+    required double fuelPerPixel,
+    required int fuelCapacity,
+    required double currentFuelLevel,
+
+    /// Max speed in pixels per second
+    required int maxSpeed,
+
+    /// Kilograms
     required double maxCargoWeight,
-    required double maxPassengers,
-    required double cost,
-    required double premiumCost,
+    required int cost,
+    double? premiumCost,
     required VehicleType preferredVehicleType,
     required double otherCargoTypeEffience,
     @Default(VehicleStatus.idle) VehicleStatus status,
@@ -30,6 +35,11 @@ class Vehicle with _$Vehicle {
 
   factory Vehicle.fromJson(Map<String, dynamic> json) =>
       _$VehicleFromJson(json);
+
+  bool hasEnoughFuel(double distance) =>
+      currentFuelLevel >= distance * fuelPerPixel;
+
+  double maxDistance() => (currentFuelLevel / fuelPerPixel) / 2;
 
   Vehicle mountPart(VehiclePart newPart) {
     // Znajdź istniejącą część tego samego typu
@@ -50,22 +60,37 @@ class Vehicle with _$Vehicle {
   Vehicle _upgradeVehicle() {
     final newFuelCapacity = parts
         .where((part) => part.type == VehiclePartType.tank)
-        .fold(fuelCapacity, (prev, part) => prev + part.realValue);
-    final newFuelConsumption = parts
+        .fold(fuelCapacity, (prev, part) => prev + part.realValue.toInt());
+    final newFuelPerPixel = parts
         .where((part) => part.type == VehiclePartType.wheel)
-        .fold(fuelConsumption, (prev, part) => prev + part.realValue);
+        .fold(fuelPerPixel, (prev, part) => prev + part.realValue);
     final newMaxCargoWeight = parts
         .where((part) => part.type == VehiclePartType.suspension)
         .fold(maxCargoWeight, (prev, part) => prev + part.realValue);
     final newMaxSpeed = parts
         .where((part) => part.type == VehiclePartType.engine)
-        .fold(maxSpeed, (prev, part) => prev + part.realValue);
+        .fold(maxSpeed, (prev, part) => prev + part.realValue.toInt());
 
     return copyWith(
       fuelCapacity: newFuelCapacity,
-      fuelConsumption: newFuelConsumption,
+      fuelPerPixel: newFuelPerPixel,
       maxCargoWeight: newMaxCargoWeight,
       maxSpeed: newMaxSpeed,
     );
+  }
+
+  double terrainSpeed(MapTileType type) {
+    switch (type) {
+      case MapTileType.road:
+      case MapTileType.city:
+      case MapTileType.headquarter:
+        return maxSpeed * 1.0;
+      case MapTileType.forest:
+        return maxSpeed * 0.8;
+      case MapTileType.gravel:
+        return maxSpeed * 0.7;
+      default:
+        return maxSpeed * 0.1;
+    }
   }
 }
