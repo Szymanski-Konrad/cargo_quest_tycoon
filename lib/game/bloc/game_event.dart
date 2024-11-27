@@ -7,54 +7,62 @@ abstract class GameEvent extends Equatable {
   List<Object> get props => [];
 }
 
-final class GameLevelUp extends GameEvent {
-  const GameLevelUp();
+final class LevelUp extends GameEvent {
+  const LevelUp();
 }
 
-final class GameGainExp extends GameEvent {
+final class GainExp extends GameEvent {
   final int exp;
-  const GameGainExp(this.exp);
+  const GainExp(this.exp);
 
   @override
   List<Object> get props => [exp];
 }
 
-final class GameGainCoins extends GameEvent {
+final class GainCoins extends GameEvent {
   final int coins;
-  const GameGainCoins(this.coins);
+  const GainCoins(this.coins);
 
   @override
   List<Object> get props => [coins];
 }
 
-final class GameGainRoadStars extends GameEvent {
+final class GainRoadStars extends GameEvent {
   final int roadStars;
-  const GameGainRoadStars(this.roadStars);
+  const GainRoadStars(this.roadStars);
 
   @override
   List<Object> get props => [roadStars];
 }
 
-final class GameGainCrates extends GameEvent {
+final class GainCrates extends GameEvent {
   final int crates;
-  const GameGainCrates(this.crates);
+  const GainCrates(this.crates);
 
   @override
   List<Object> get props => [crates];
 }
 
-final class GameGainPremiumCrates extends GameEvent {
+final class GainPremiumCrates extends GameEvent {
   final int premiumCrates;
-  const GameGainPremiumCrates(this.premiumCrates);
+  const GainPremiumCrates(this.premiumCrates);
 
   @override
   List<Object> get props => [premiumCrates];
 }
 
-final class GameUnlockTile extends GameEvent {
+final class UnlockTile extends GameEvent {
   final MapTile tile;
-  const GameUnlockTile(this.tile);
+  const UnlockTile(this.tile);
 
   @override
   List<Object> get props => [tile];
+}
+
+final class ShowBuyTruckDialog extends GameEvent {
+  const ShowBuyTruckDialog();
+}
+
+final class HideBuyTruckDialog extends GameEvent {
+  const HideBuyTruckDialog();
 }

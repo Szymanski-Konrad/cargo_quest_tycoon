@@ -22,5 +22,8 @@ class GameState with _$GameState {
     @Default(0) int crates,
     @Default(0) int premiumCrates,
     @Default([]) List<MapTile> unlockedTiles,
+
+    // Control values
+    @Default(false) bool showBuyTruckDialog,
   }) = _GameState;
 }
