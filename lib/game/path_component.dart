@@ -1,3 +1,4 @@
+import 'package:cargo_quest_tycoon/game/path_finder.dart';
 import 'package:cargo_quest_tycoon/game/transport_world.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/cupertino.dart';
@@ -5,7 +6,7 @@ import 'package:flutter/material.dart';
 
 class PathComponent extends PositionComponent
     with HasWorldReference<TransportWorld> {
-  final List<Vector2> pathPoints;
+  final List<PathTile> pathPoints;
   final Color color;
   final String pathId;
 
@@ -22,11 +23,11 @@ class PathComponent extends PositionComponent
     }
 
     final path = Path();
-    path.moveTo(pathPoints[0].x, pathPoints[0].y);
+    path.moveTo(pathPoints[0].position.x, pathPoints[0].position.y);
 
     for (int i = 1; i < pathPoints.length; i++) {
       final point = pathPoints[i];
-      path.lineTo(point.x, point.y);
+      path.lineTo(point.position.x, point.position.y);
     }
 
     canvas.drawPath(

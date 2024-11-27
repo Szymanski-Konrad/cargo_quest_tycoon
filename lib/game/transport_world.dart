@@ -2,15 +2,17 @@ import 'dart:math';
 
 import 'package:cargo_quest_tycoon/core/constants/game_constants.dart';
 import 'package:cargo_quest_tycoon/data/enums/map_tile_type.dart';
-import 'package:cargo_quest_tycoon/game/bloc/game_bloc.dart';
+import 'package:cargo_quest_tycoon/data/models/vehicle.dart';
 import 'package:cargo_quest_tycoon/game/game_tile.dart';
 import 'package:cargo_quest_tycoon/game/game_vehicle.dart';
 import 'package:cargo_quest_tycoon/game/path_component.dart';
 import 'package:cargo_quest_tycoon/game/path_finder.dart';
 import 'package:cargo_quest_tycoon/game/transport_game.dart';
+import 'package:cargo_quest_tycoon/utils/path_extension.dart';
 import 'package:collection/collection.dart';
 import 'package:flame/events.dart' as flame_events;
 import 'package:flame/components.dart';
+import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
@@ -36,38 +38,63 @@ class TransportWorld extends World
     return closestTile;
   }
 
-  (List<Vector2>, String) generatePath(Vector2 position) {
-    final randomCity = tiles
+  GameTile? assignCityToTruck() => (tiles
+          .expand((element) => element)
+          .where((element) => element.type == MapTileType.city)
+          .toList()
+        ..shuffle())
+      .first;
+
+  (List<PathTile>, String) generatePath(
+    Vector2 position, {
+    Vector2? target,
+    double maxDistance = double.infinity,
+  }) {
+    final randomCities = tiles
         .expand((element) => element)
         .where((element) => element.type == MapTileType.city)
         .toList()
       ..shuffle();
-    final destination = randomCity.first.position;
-    final path = PathFinder(tiles).findPath(position, destination);
-    final pathId = const Uuid().v4();
-    if (path.isNotEmpty) {
-      final pathComponent = PathComponent(
-        pathPoints: path,
-        color: getRandomColor(),
-        pathId: pathId,
-      );
-      add(pathComponent);
+
+    List<PathTile> path = [];
+    for (final city in randomCities.take(5)) {
+      final path = PathFinder(tiles).findPath(position, city.position);
+      final distance = path.calculatePathLength();
+      if (path.isNotEmpty && distance > 0 && distance < maxDistance) {
+        final pathId = const Uuid().v4();
+        final pathComponent = PathComponent(
+          pathPoints: path,
+          color: getRandomColor(),
+          pathId: pathId,
+        );
+        add(pathComponent);
+        return (path, pathId);
+      } else {
+        // print(
+        // 'Path to city ${city.number} is too long, ${maxDistance} -> $distance');
+      }
     }
-    return (path, pathId);
+
+    print('No path found for max distance $maxDistance');
+    return ([], '');
   }
 
-  void addTruck(Vector2 position) {
-    if (game.gameBloc.state.coins < 500) {
+  void openVehicleShop(Vector2 position) {
+    game.openVehicleShop();
+  }
+
+  void addTruck(Vehicle vehicle) {
+    final target = tiles
+        .expand((element) => element)
+        .firstWhereOrNull((element) => element.type == MapTileType.headquarter);
+    if (target == null) {
       return;
     }
-    final (path, pathId) = generatePath(position);
-    if (path.isEmpty) {
-      print('No path found');
-      return;
-    }
-    GameVehicle truck = GameVehicle(position: position);
-    truck.setDestination(path, pathId);
-    game.gameBloc.add(const GameGainCoins(-500));
+
+    GameVehicle truck = GameVehicle(
+      position: target.position,
+      vehicle: vehicle,
+    );
     add(truck);
   }
 
@@ -85,6 +112,18 @@ class TransportWorld extends World
     final path = children
         .whereType<PathComponent>()
         .firstWhereOrNull((element) => element.pathId == pathId);
+    final paths = children.whereType<PathComponent>();
+    final vehiclePaths = children
+        .whereType<GameVehicle>()
+        .map((item) => item.pathId)
+        .whereNot((item) => item == null);
+    for (final leftPath in paths) {
+      if (vehiclePaths.contains(leftPath.pathId)) {
+        continue;
+      }
+      remove(leftPath);
+    }
+
     if (path != null) remove(path);
   }
 
@@ -115,18 +154,49 @@ class TransportWorld extends World
       }
       tiles.add(row);
     }
+
+    _ensurePathsBetweenCities();
+  }
+
+  Future<void> _ensurePathsBetweenCities() async {
+    final cities = tiles
+        .expand((row) => row)
+        .where((tile) => tile.type == MapTileType.city)
+        .toList();
+    if (cities.isEmpty) return;
+
+    for (int i = 0; i < cities.length; i++) {
+      for (int j = 0; j < cities.length; j++) {
+        if (i == j) continue;
+        final start = cities[i];
+        final end = cities[j];
+        final path =
+            PathFinder(tiles).findPath(start.gridPosition, end.gridPosition);
+
+        for (final point in path) {
+          final tile = tiles.flattened.firstWhereOrNull(
+              (testTile) => testTile.containsPoint(point.position));
+          if (tile == null) {
+            continue;
+          }
+          if (!tile.type.isDrivable) {
+            await Future.delayed(const Duration(seconds: 1));
+            tile.type = MapTileType.road;
+          }
+        }
+      }
+    }
   }
 
   MapTileType _generateTileType() {
     final random = Random();
     final value = random.nextDouble();
 
-    if (value < 0.1) return MapTileType.port;
     if (value < 0.2) return MapTileType.water;
     if (value < 0.4) return MapTileType.forest;
     if (value < 0.6) return MapTileType.mountain;
     if (value < 0.7) return MapTileType.road;
     if (value < 0.8) return MapTileType.city;
-    return MapTileType.empty;
+    return MapTileType.gravel;
   }
 }

@@ -6,6 +6,13 @@ import 'package:cargo_quest_tycoon/data/enums/map_tile_type.dart';
 import 'package:cargo_quest_tycoon/game/game_tile.dart';
 import 'package:flame/components.dart';
 
+class PathTile {
+  final Vector2 position;
+  final MapTileType type;
+
+  PathTile(this.position, this.type);
+}
+
 class PathNode {
   final Vector2 position;
   final double g; // Cost from start
@@ -36,13 +43,12 @@ class PathFinder {
   final List<List<GameTile>> map;
   final double straightCost = 1.0;
 
-  // Movement costs for different tile types
+  // Movement costs for diffe rent tile types
   final Map<MapTileType, double> terrainCosts = {
     MapTileType.road: 1.0,
     MapTileType.city: 1.0,
     MapTileType.headquarter: 1.0,
-    MapTileType.port: 1.0,
-    MapTileType.empty: 2.0,
+    MapTileType.gravel: 2.0,
     MapTileType.forest: 3.0,
     MapTileType.mountain: double.infinity,
     MapTileType.water: double.infinity,
@@ -50,7 +56,7 @@ class PathFinder {
 
   PathFinder(this.map);
 
-  List<Vector2> findPath(Vector2 start, Vector2 end) {
+  List<PathTile> findPath(Vector2 start, Vector2 end) {
     // Convert positions to grid coordinates
     final startGrid = _worldToGrid(start);
     final endGrid = _worldToGrid(end);
@@ -160,17 +166,25 @@ class PathFinder {
     return straightCost * (fromCost + toCost) / 2;
   }
 
-  List<Vector2> _reconstructPath(PathNode endNode) {
-    final path = <Vector2>[];
+  List<PathTile> _reconstructPath(PathNode endNode) {
+    final path = <PathTile>[];
     var current = endNode;
 
     while (current.parent != null) {
-      path.add(_gridToWorld(current.position));
+      path.add(PathTile(
+          _gridToWorld(current.position),
+          map[current.position.y.toInt() + yHalf.ceil()]
+                  [current.position.x.toInt() + xHalf.ceil()]
+              .type));
       current = current.parent!;
     }
 
     // Add start position
-    path.add(_gridToWorld(current.position));
+    path.add(PathTile(
+        _gridToWorld(current.position),
+        map[current.position.y.toInt() + yHalf.ceil()]
+                [current.position.x.toInt() + xHalf.ceil()]
+            .type));
 
     // Smooth path
     return path.reversed.toList();
