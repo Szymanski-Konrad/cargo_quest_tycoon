@@ -1,8 +1,9 @@
-import 'package:cargo_quest_tycoon/data/models/fuel_station.dart';
-import 'package:cargo_quest_tycoon/data/models/map_tile_position.dart';
-import 'package:cargo_quest_tycoon/features/fuel_stations/bloc/fuel_stations_event.dart';
-import 'package:cargo_quest_tycoon/features/fuel_stations/bloc/fuel_stations_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../../data/models/fuel_station.dart';
+import '../../../data/models/map_tile_position.dart';
+import 'fuel_stations_event.dart';
+import 'fuel_stations_state.dart';
 
 class FuelStationsBloc extends Bloc<FuelStationsEvent, FuelStationsState> {
   FuelStationsBloc()
@@ -48,9 +49,10 @@ class FuelStationsBloc extends Bloc<FuelStationsEvent, FuelStationsState> {
 
   void _onAddFuel(
       FuelStationsEventAddFuel event, Emitter<FuelStationsState> emit) {
-    final leftCapacity =
+    final double leftCapacity =
         state.primary.fuelCapacity - state.primary.currentFuelLevel;
-    final amount = leftCapacity < event.amount ? leftCapacity : event.amount;
+    final double amount =
+        leftCapacity < event.amount ? leftCapacity : event.amount;
     emit(state.copyWith(
       primary: state.primary.copyWith(
         currentFuelLevel: state.primary.currentFuelLevel + amount,

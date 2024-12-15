@@ -1,6 +1,7 @@
-import 'package:cargo_quest_tycoon/data/enums/road_type.dart';
-import 'package:cargo_quest_tycoon/data/models/city.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../enums/road_type.dart';
+import 'city.dart';
 
 part 'city_road.freezed.dart';
 part 'city_road.g.dart';

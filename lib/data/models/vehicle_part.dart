@@ -1,13 +1,12 @@
-import 'package:cargo_quest_tycoon/data/enums/vehicle_part_type.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../enums/vehicle_part_type.dart';
 
 part 'vehicle_part.freezed.dart';
 part 'vehicle_part.g.dart';
 
 @freezed
 class VehiclePart with _$VehiclePart {
-  const VehiclePart._();
-
   factory VehiclePart({
     required String id,
     required String name,
@@ -18,8 +17,9 @@ class VehiclePart with _$VehiclePart {
     required double value,
   }) = _VehiclePart;
 
-  double get realValue => value * 100 / quality;
-
   factory VehiclePart.fromJson(Map<String, dynamic> json) =>
       _$VehiclePartFromJson(json);
+  const VehiclePart._();
+
+  double get realValue => value * 100 / quality;
 }

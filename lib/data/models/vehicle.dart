@@ -1,22 +1,22 @@
-import 'package:cargo_quest_tycoon/data/enums/map_tile_type.dart';
-import 'package:cargo_quest_tycoon/data/enums/vehicle_part_type.dart';
-import 'package:cargo_quest_tycoon/data/enums/vehicle_status.dart';
-import 'package:cargo_quest_tycoon/data/enums/vehicle_type.dart';
-import 'package:cargo_quest_tycoon/data/models/vehicle_part.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../enums/map_tile_type.dart';
+import '../enums/vehicle_part_type.dart';
+import '../enums/vehicle_status.dart';
+import '../enums/vehicle_type.dart';
+import 'cargo.dart';
+import 'vehicle_part.dart';
 
 part 'vehicle.freezed.dart';
 part 'vehicle.g.dart';
 
 @freezed
 class Vehicle with _$Vehicle {
-  const Vehicle._();
-
   factory Vehicle({
     String? id,
     required String name,
     required String model,
-    @Default([]) List<VehiclePart> parts,
+    @Default(<VehiclePart>[]) List<VehiclePart> parts,
     required double fuelPerPixel,
     required int fuelCapacity,
     required double currentFuelLevel,
@@ -28,10 +28,13 @@ class Vehicle with _$Vehicle {
     required double maxCargoWeight,
     required int cost,
     double? premiumCost,
+    String? cityAssignedId,
     required VehicleType preferredVehicleType,
     required double otherCargoTypeEffience,
     @Default(VehicleStatus.idle) VehicleStatus status,
+    @Default([]) List<Cargo> cargos,
   }) = _Vehicle;
+  const Vehicle._();
 
   factory Vehicle.fromJson(Map<String, dynamic> json) =>
       _$VehicleFromJson(json);
@@ -41,11 +44,14 @@ class Vehicle with _$Vehicle {
 
   double maxDistance() => (currentFuelLevel / fuelPerPixel) / 2;
 
+  double get cargoSize =>
+      cargos.fold(0, (double prev, Cargo cargo) => prev + cargo.weight);
+
   Vehicle mountPart(VehiclePart newPart) {
     // Znajdź istniejącą część tego samego typu
-    final currentParts = List.of(parts);
-    final existingPartIndex =
-        currentParts.indexWhere((part) => part.id == newPart.id);
+    final currentParts = List<VehiclePart>.of(parts);
+    final int existingPartIndex =
+        currentParts.indexWhere((VehiclePart part) => part.id == newPart.id);
     if (existingPartIndex != -1) {
       if (newPart.quality > parts[existingPartIndex].quality) {
         currentParts[existingPartIndex] = newPart;
@@ -58,18 +64,22 @@ class Vehicle with _$Vehicle {
   }
 
   Vehicle _upgradeVehicle() {
-    final newFuelCapacity = parts
-        .where((part) => part.type == VehiclePartType.tank)
-        .fold(fuelCapacity, (prev, part) => prev + part.realValue.toInt());
-    final newFuelPerPixel = parts
-        .where((part) => part.type == VehiclePartType.wheel)
-        .fold(fuelPerPixel, (prev, part) => prev + part.realValue);
-    final newMaxCargoWeight = parts
-        .where((part) => part.type == VehiclePartType.suspension)
-        .fold(maxCargoWeight, (prev, part) => prev + part.realValue);
-    final newMaxSpeed = parts
-        .where((part) => part.type == VehiclePartType.engine)
-        .fold(maxSpeed, (prev, part) => prev + part.realValue.toInt());
+    final int newFuelCapacity = parts
+        .where((VehiclePart part) => part.type == VehiclePartType.tank)
+        .fold(fuelCapacity,
+            (int prev, VehiclePart part) => prev + part.realValue.toInt());
+    final double newFuelPerPixel = parts
+        .where((VehiclePart part) => part.type == VehiclePartType.wheel)
+        .fold(fuelPerPixel,
+            (double prev, VehiclePart part) => prev + part.realValue);
+    final double newMaxCargoWeight = parts
+        .where((VehiclePart part) => part.type == VehiclePartType.suspension)
+        .fold(maxCargoWeight,
+            (double prev, VehiclePart part) => prev + part.realValue);
+    final int newMaxSpeed = parts
+        .where((VehiclePart part) => part.type == VehiclePartType.engine)
+        .fold(maxSpeed,
+            (int prev, VehiclePart part) => prev + part.realValue.toInt());
 
     return copyWith(
       fuelCapacity: newFuelCapacity,
@@ -89,8 +99,9 @@ class Vehicle with _$Vehicle {
         return maxSpeed * 0.8;
       case MapTileType.gravel:
         return maxSpeed * 0.7;
-      default:
-        return maxSpeed * 0.1;
+      case MapTileType.mountain:
+      case MapTileType.water:
+        return maxSpeed * 0.01;
     }
   }
 }

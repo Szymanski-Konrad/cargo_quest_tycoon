@@ -1,31 +1,28 @@
-import 'package:cargo_quest_tycoon/core/constants/predefined_vehicles.dart';
-import 'package:cargo_quest_tycoon/data/models/vehicle.dart';
-import 'package:cargo_quest_tycoon/features/fuel_stations/bloc/fuel_stations_bloc.dart';
-import 'package:cargo_quest_tycoon/features/vehicles_management/bloc/vehicles_management_bloc.dart';
-import 'package:cargo_quest_tycoon/features/vehicles_management/bloc/vehicles_management_event.dart';
-import 'package:cargo_quest_tycoon/game/bloc/game_bloc.dart';
-import 'package:cargo_quest_tycoon/game/transport_game.dart';
-import 'package:cargo_quest_tycoon/game/transport_world.dart';
-import 'package:cargo_quest_tycoon/game/widgets/game_stats_bar.dart';
 import 'package:flame/camera.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'core/constants/predefined_vehicles.dart';
+import 'data/models/vehicle.dart';
+import 'features/cities_management/bloc/cities_bloc.dart';
+import 'features/fuel_stations/bloc/fuel_stations_bloc.dart';
+import 'features/garage/garage_bloc.dart';
+import 'features/vehicles_management/bloc/vehicles_management_bloc.dart';
+import 'features/vehicles_management/bloc/vehicles_management_event.dart';
+import 'game/bloc/game_bloc.dart';
+import 'game/transport_game.dart';
+import 'game/transport_world.dart';
+import 'game/widgets/city_overview.dart';
+import 'game/widgets/game_stats_bar.dart';
+import 'game/widgets/garage_overview.dart';
 
 class CargoQuestGame extends StatelessWidget {
   const CargoQuestGame({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(create: (context) => GameBloc()),
-        BlocProvider(create: (context) => FuelStationsBloc()),
-        BlocProvider(create: (context) => VehiclesManagementBloc()),
-        BlocProvider(create: (context) => FuelStationsBloc()),
-      ],
-      child: const GameView(),
-    );
+    return const GameView();
   }
 }
 
@@ -38,22 +35,40 @@ class GameView extends StatelessWidget {
       body: Stack(
         children: [
           GameWidget.controlled(
-              gameFactory: () {
-                final myWorld = TransportWorld();
-                return TransportGame(
-                  gameBloc: context.read<GameBloc>(),
-                  stationsBloc: context.read<FuelStationsBloc>(),
+            gameFactory: () {
+              final TransportWorld myWorld = TransportWorld();
+              return TransportGame(
+                gameBloc: context.read<GameBloc>(),
+                stationsBloc: context.read<FuelStationsBloc>(),
+                vehiclesBloc: context.read<VehiclesManagementBloc>(),
+                citiesBloc: context.read<CitiesBloc>(),
+                garageBloc: context.read<GarageBloc>(),
+                world: myWorld,
+                camera: CameraComponent(
                   world: myWorld,
-                  camera: CameraComponent(
-                    world: myWorld,
-                    viewport: MaxViewport(),
+                  viewport: MaxViewport(),
+                ),
+              );
+            },
+            initialActiveOverlays: const [
+              garageOverview,
+            ],
+            overlayBuilderMap: {
+              cityOverview: (BuildContext context, TransportGame game) =>
+                  CityOverview(
+                    onClose: () => game.overlays.remove(cityOverview),
                   ),
-                );
-              },
-              overlayBuilderMap: {
-                'VehicleShop': (context, TransportGame game) =>
-                    Center(child: VehicleShop(game: game)),
-              }),
+              availableTrucks: (BuildContext context, Object? game) =>
+                  Container(),
+              garageOverview: (BuildContext context, TransportGame game) =>
+                  GarageOverview(
+                    onClose: () => game.overlays.remove(garageOverview),
+                    onSendVehicle: (Vehicle vehicle) {
+                      game.sendTruck(vehicle);
+                    },
+                  ),
+            },
+          ),
           const GameStatsBar(),
         ],
       ),
@@ -64,10 +79,7 @@ class GameView extends StatelessWidget {
 class VehicleShop extends StatelessWidget {
   const VehicleShop({
     super.key,
-    required this.game,
   });
-
-  final TransportGame game;
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +90,8 @@ class VehicleShop extends StatelessWidget {
         children: [
           IconButton(
             onPressed: () {
-              game.overlays.remove(vehicleShopOverlay);
+              // game.overlays.remove(vehicleShopOverlay);
+              Navigator.of(context).pop();
             },
             icon: const Icon(Icons.close),
             color: Colors.black,
@@ -88,11 +101,12 @@ class VehicleShop extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             child: Row(
               children: predefinedVehicles
-                  .map((vehicle) => ShopVehicleCard(
+                  .map((Vehicle vehicle) => ShopVehicleCard(
                         vehicle: vehicle,
                         onTruckBought: () {
-                          game.onTruckBought(vehicle);
-                          game.overlays.remove(vehicleShopOverlay);
+                          // Navigator.of(context).pop();
+                          // game.onTruckBought(vehicle);
+                          // game.overlays.remove(vehicleShopOverlay);
                         },
                       ))
                   .toList(),
@@ -116,7 +130,8 @@ class ShopVehicleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentCoins = context.select((GameBloc bloc) => bloc.state.coins);
+    final int currentCoins =
+        context.select((GameBloc bloc) => bloc.state.coins);
     return Container(
       color: Colors.white,
       margin: const EdgeInsets.all(8.0),

@@ -1,5 +1,6 @@
-import 'package:cargo_quest_tycoon/data/models/fuel_station.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../../../data/models/fuel_station.dart';
 
 part 'fuel_stations_state.freezed.dart';
 part 'fuel_stations_state.g.dart';

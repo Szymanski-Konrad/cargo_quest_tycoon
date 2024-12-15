@@ -1,7 +1,7 @@
-import 'package:cargo_quest_tycoon/data/enums/vehicle_type.dart';
-import 'package:cargo_quest_tycoon/data/models/vehicle.dart';
+import '../../data/enums/vehicle_type.dart';
+import '../../data/models/vehicle.dart';
 
-List<Vehicle> predefinedVehicles = [
+List<Vehicle> predefinedVehicles = <Vehicle>[
   Vehicle(
     name: 'Default',
     model: 'Cheap',

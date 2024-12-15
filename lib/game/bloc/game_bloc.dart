@@ -1,13 +1,18 @@
+import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import 'package:cargo_quest_tycoon/data/models/map_tile.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-part 'game_state.dart';
-part 'game_event.dart';
+import '../../core/constants/generated_map.dart';
+import '../../data/enums/map_tile_type.dart';
+import '../../data/models/map_tile.dart';
+import '../../data/models/map_tile_position.dart';
+import '../../utils/map_extension.dart';
 
 part 'game_bloc.freezed.dart';
+part 'game_event.dart';
+part 'game_state.dart';
 
 class GameBloc extends Bloc<GameEvent, GameState> {
   GameBloc() : super(GameState.initial()) {
@@ -58,6 +63,24 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   }
 
   void _onUnlockTile(UnlockTile event, Emitter<GameState> emit) {
-    emit(state.copyWith(unlockedTiles: [...state.unlockedTiles, event.tile]));
+    if (state.coins > 1) {
+      final MapTile? mapTile = mapTiles.flattened.firstWhereOrNull(
+          (MapTile item) => item.position == event.tilePosition);
+      if (mapTile == null) {
+        return;
+      }
+
+      if (mapTiles.isAnyNeighborDiscovered(mapTile.position)) {
+        mapTiles.discoverTile(mapTile.position);
+        emit(state.copyWith(
+            unlockedTiles: <MapTile>[...state.unlockedTiles, mapTile]));
+        add(const GainCoins(-1));
+        if (mapTile.type == MapTileType.city) {
+          event.onCityUnlocked();
+        }
+      } else {
+        return;
+      }
+    }
   }
 }

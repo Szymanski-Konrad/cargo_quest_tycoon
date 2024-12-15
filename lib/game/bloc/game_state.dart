@@ -2,15 +2,6 @@ part of 'game_bloc.dart';
 
 @freezed
 class GameState with _$GameState {
-  const GameState._();
-
-  factory GameState.initial() => GameState(
-        level: 1,
-        exp: 0,
-        expToNextLevel: 100,
-        coins: 600,
-      );
-
   factory GameState({
     required int level,
     required int exp,
@@ -26,4 +17,12 @@ class GameState with _$GameState {
     // Control values
     @Default(false) bool showBuyTruckDialog,
   }) = _GameState;
+  const GameState._();
+
+  factory GameState.initial() => GameState(
+        level: 1,
+        exp: 0,
+        expToNextLevel: 100,
+        coins: 600,
+      );
 }

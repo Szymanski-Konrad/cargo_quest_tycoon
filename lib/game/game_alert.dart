@@ -3,10 +3,6 @@ import 'package:flame/text.dart';
 import 'package:flutter/material.dart';
 
 class AlertComponent extends TextComponent with HasGameRef {
-  final String message;
-  final double duration;
-  double _timeAlive = 0;
-
   AlertComponent({
     required this.message,
     this.duration = 5, // 5 seconds by default
@@ -20,6 +16,9 @@ class AlertComponent extends TextComponent with HasGameRef {
             ),
           ),
         );
+  final String message;
+  final double duration;
+  double _timeAlive = 0;
 
   @override
   void onMount() {

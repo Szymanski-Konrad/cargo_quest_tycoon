@@ -1,6 +1,6 @@
-import 'package:cargo_quest_tycoon/data/enums/cargo_type.dart';
-import 'package:cargo_quest_tycoon/data/models/city.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../enums/cargo_type.dart';
 
 part 'cargo.freezed.dart';
 part 'cargo.g.dart';
@@ -10,9 +10,8 @@ class Cargo with _$Cargo {
   const factory Cargo({
     required String id,
     required CargoType type,
-    required City source,
-    required City destination,
-    required String name,
+    required String sourceId,
+    required String targetId,
     required double weight,
     required DateTime createdAt,
     required DateTime expiresAt,

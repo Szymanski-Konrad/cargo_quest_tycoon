@@ -1,5 +1,6 @@
-import 'package:cargo_quest_tycoon/data/models/city.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+
+import 'city.dart';
 
 part 'game_stats.freezed.dart';
 part 'game_stats.g.dart';
@@ -16,7 +17,7 @@ class GameStats with _$GameStats {
     @Default(0) int roadStars,
     @Default(0) int crates,
     @Default(0) int premiumCrates,
-    @Default([]) List<City> unlockedCities,
+    @Default(<City>[]) List<City> unlockedCities,
   }) = _GameStats;
 
   factory GameStats.fromJson(Map<String, dynamic> json) =>

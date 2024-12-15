@@ -1,19 +1,22 @@
 // Node class for A* algorithm
 import 'dart:collection';
 
-import 'package:cargo_quest_tycoon/core/constants/game_constants.dart';
-import 'package:cargo_quest_tycoon/data/enums/map_tile_type.dart';
-import 'package:cargo_quest_tycoon/game/game_tile.dart';
 import 'package:flame/components.dart';
+import 'package:flutter/material.dart';
+
+import '../core/constants/game_constants.dart';
+import '../data/enums/map_tile_type.dart';
+import 'game_tile.dart';
 
 class PathTile {
+  PathTile(this.position, this.type);
   final Vector2 position;
   final MapTileType type;
-
-  PathTile(this.position, this.type);
 }
 
+@immutable
 class PathNode {
+  const PathNode(this.position, this.g, this.h, this.parent);
   final Vector2 position;
   final double g; // Cost from start
   final double h; // Estimated cost to end
@@ -32,19 +35,18 @@ class PathNode {
 
   @override
   int get hashCode => position.hashCode;
-
-  PathNode(this.position, this.g, this.h, this.parent);
 }
 
 class PathFinder {
-  final xHalf = (GameConstants.mapXSize / 2).ceil();
-  final yHalf = (GameConstants.mapYSize / 2).ceil();
+  PathFinder(this.map);
+  final int xHalf = (GameConstants.mapXSize / 2).ceil();
+  final int yHalf = (GameConstants.mapYSize / 2).ceil();
 
   final List<List<GameTile>> map;
   final double straightCost = 1.0;
 
   // Movement costs for diffe rent tile types
-  final Map<MapTileType, double> terrainCosts = {
+  final Map<MapTileType, double> terrainCosts = <MapTileType, double>{
     MapTileType.road: 1.0,
     MapTileType.city: 1.0,
     MapTileType.headquarter: 1.0,
@@ -54,28 +56,29 @@ class PathFinder {
     MapTileType.water: double.infinity,
   };
 
-  PathFinder(this.map);
-
   List<PathTile> findPath(Vector2 start, Vector2 end) {
     // Convert positions to grid coordinates
-    final startGrid = _worldToGrid(start);
-    final endGrid = _worldToGrid(end);
+    final Vector2 startGrid = _worldToGrid(start);
+    final Vector2 endGrid = _worldToGrid(end);
+    print('Before Start grid: $start, end grid: $end');
+    print('Start grid: $startGrid, end grid: $endGrid');
 
     // Check if start or end is invalid
     if (!_isValidPosition(startGrid) || !_isValidPosition(endGrid)) {
-      print('Invalid start or end position');
-      return [];
+      debugPrint('Invalid start or end position');
+      return <PathTile>[];
     }
 
-    final openSet = HashSet<PathNode>();
-    final closedSet = HashSet<PathNode>();
+    final HashSet<PathNode> openSet = HashSet<PathNode>();
+    final HashSet<PathNode> closedSet = HashSet<PathNode>();
 
     openSet.add(
         PathNode(startGrid, 0, _calculateHeuristic(startGrid, endGrid), null));
 
     while (openSet.isNotEmpty) {
       // Get node with lowest f cost
-      final current = openSet.reduce((a, b) => a.f < b.f ? a : b);
+      final PathNode current =
+          openSet.reduce((PathNode a, PathNode b) => a.f < b.f ? a : b);
 
       // Check if we reached the end
       if ((current.position - endGrid).length < 0.1) {
@@ -86,11 +89,13 @@ class PathFinder {
       closedSet.add(current);
 
       // Check all neighbors
-      for (final neighbor in _getNeighbors(current)) {
+      for (final PathNode neighbor in _getNeighbors(current)) {
         // Skip if already evaluated
-        if (closedSet.contains(neighbor)) continue;
+        if (closedSet.contains(neighbor)) {
+          continue;
+        }
 
-        final tentativeG = current.g +
+        final double tentativeG = current.g +
             _calculateMovementCost(current.position, neighbor.position);
 
         // Check if this path is better
@@ -98,7 +103,7 @@ class PathFinder {
           openSet.add(PathNode(neighbor.position, tentativeG,
               _calculateHeuristic(neighbor.position, endGrid), current));
         } else {
-          final existingNode = openSet.lookup(neighbor);
+          final PathNode? existingNode = openSet.lookup(neighbor);
           if (existingNode != null && tentativeG < existingNode.g) {
             openSet.remove(existingNode);
             openSet.add(PathNode(
@@ -108,7 +113,7 @@ class PathFinder {
       }
     }
 
-    return []; // No path found
+    return <PathTile>[]; // No path found
   }
 
   double _calculateHeuristic(Vector2 start, Vector2 end) {
@@ -117,25 +122,26 @@ class PathFinder {
   }
 
   List<PathNode> _getNeighbors(PathNode node) {
-    final List<PathNode> neighbors = [];
-    final directions = [
+    final List<PathNode> neighbors = <PathNode>[];
+    final List<Vector2> directions = <Vector2>[
       Vector2(1, 0), // right
       Vector2(-1, 0), // left
       Vector2(0, 1), // down
       Vector2(0, -1), // up
     ];
 
-    for (final dir in directions) {
-      final newPos = node.position + dir;
+    for (final Vector2 dir in directions) {
+      final Vector2 newPos = node.position + dir;
 
       if (_isValidPosition(newPos)) {
-        final tileType = map[newPos.y.toInt() + yHalf.ceil()]
-                [newPos.x.toInt() + xHalf.ceil()]
-            .type;
-        final movementCost = terrainCosts[tileType] ?? double.infinity;
+        final MapTileType tileType =
+            map[newPos.y.toInt() + yHalf][newPos.x.toInt() + xHalf].type;
+        final double movementCost = terrainCosts[tileType] ?? double.infinity;
 
         // Skip unwalkable tiles
-        if (movementCost == double.infinity) continue;
+        if (movementCost == double.infinity) {
+          continue;
+        }
 
         neighbors.add(PathNode(
             newPos,
@@ -154,27 +160,27 @@ class PathFinder {
 
   double _calculateMovementCost(Vector2 from, Vector2 to) {
     // Get terrain costs for both tiles
-    final fromType =
-        map[from.y.toInt() + yHalf.ceil()][from.x.toInt() + xHalf.ceil()].type;
-    final toType =
-        map[to.y.toInt() + yHalf.ceil()][to.x.toInt() + xHalf.ceil()].type;
+    final MapTileType fromType =
+        map[from.y.toInt() + yHalf][from.x.toInt() + xHalf].type;
+    final MapTileType toType =
+        map[to.y.toInt() + yHalf][to.x.toInt() + xHalf].type;
 
-    final fromCost = terrainCosts[fromType] ?? double.infinity;
-    final toCost = terrainCosts[toType] ?? double.infinity;
+    final double fromCost = terrainCosts[fromType] ?? double.infinity;
+    final double toCost = terrainCosts[toType] ?? double.infinity;
 
     // Use average of both tiles' costs
     return straightCost * (fromCost + toCost) / 2;
   }
 
   List<PathTile> _reconstructPath(PathNode endNode) {
-    final path = <PathTile>[];
-    var current = endNode;
+    final List<PathTile> path = <PathTile>[];
+    PathNode current = endNode;
 
     while (current.parent != null) {
       path.add(PathTile(
           _gridToWorld(current.position),
-          map[current.position.y.toInt() + yHalf.ceil()]
-                  [current.position.x.toInt() + xHalf.ceil()]
+          map[current.position.y.toInt() + yHalf]
+                  [current.position.x.toInt() + xHalf]
               .type));
       current = current.parent!;
     }
@@ -182,8 +188,8 @@ class PathFinder {
     // Add start position
     path.add(PathTile(
         _gridToWorld(current.position),
-        map[current.position.y.toInt() + yHalf.ceil()]
-                [current.position.x.toInt() + xHalf.ceil()]
+        map[current.position.y.toInt() + yHalf]
+                [current.position.x.toInt() + xHalf]
             .type));
 
     // Smooth path

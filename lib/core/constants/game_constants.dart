@@ -16,6 +16,6 @@ abstract class GameConstants {
   /// Rate of UI updates
   static const Duration gameTickDuration = Duration(milliseconds: 1000);
 
-  //TODO: Use it in calculations
+  // TODO(me): Use it in calculations
   static const double kilometersPerPixel = 1.0;
 }

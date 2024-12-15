@@ -4,31 +4,31 @@ abstract class FuelStationsEvent extends Equatable {
   const FuelStationsEvent();
 
   @override
-  List<Object> get props => [];
+  List<Object> get props => <Object>[];
 }
 
 final class FuelStationsEventUpgrade extends FuelStationsEvent {
-  final String id;
   const FuelStationsEventUpgrade(this.id);
+  final String id;
 
   @override
-  List<Object> get props => [id];
+  List<Object> get props => <Object>[id];
 }
 
 final class FuelStationsEventRefillVehicle extends FuelStationsEvent {
+  const FuelStationsEventRefillVehicle(this.id, this.amount);
   final String id;
   final double amount;
-  const FuelStationsEventRefillVehicle(this.id, this.amount);
 
   @override
-  List<Object> get props => [id, amount];
+  List<Object> get props => <Object>[id, amount];
 }
 
 final class FuelStationsEventAddFuel extends FuelStationsEvent {
+  const FuelStationsEventAddFuel(this.id, this.amount);
   final String id;
   final double amount;
-  const FuelStationsEventAddFuel(this.id, this.amount);
 
   @override
-  List<Object> get props => [id, amount];
+  List<Object> get props => <Object>[id, amount];
 }
