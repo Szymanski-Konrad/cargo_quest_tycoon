@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-import '../../data/models/cargo.dart';
+import '../../data/models/map_tile_position.dart';
 
 sealed class GarageEvent extends Equatable {
   @override
@@ -8,11 +8,15 @@ sealed class GarageEvent extends Equatable {
 }
 
 class GaragesEventBuildNew extends GarageEvent {
-  GaragesEventBuildNew({required this.cityId});
-  final String cityId;
+  GaragesEventBuildNew({
+    required this.garageName,
+    required this.position,
+  });
+  final String garageName;
+  final MapTilePosition position;
 
   @override
-  List<Object?> get props => <Object?>[cityId];
+  List<Object?> get props => <Object?>[garageName, position];
 }
 
 class GarageEventUpgrade extends GarageEvent {

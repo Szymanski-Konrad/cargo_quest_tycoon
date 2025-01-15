@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../data/models/garage.dart';
-import '../../data/models/vehicle.dart';
 import 'garage_event.dart';
 import 'garage_state.dart';
 
@@ -33,21 +32,16 @@ class GarageBloc extends Bloc<GarageEvent, GarageState> {
 
   void _onBuildNewGarage(
       GaragesEventBuildNew event, Emitter<GarageState> emit) {
-    if (state.isGarageInCity(event.cityId)) {
-      return;
-    }
     final Garage newGarage = Garage(
       id: const Uuid().v4(),
       slots: 5,
       storageLimit: 1000,
-      cityId: event.cityId,
+      position: event.position,
+      name: event.garageName,
     );
     final List<Garage> updatedGarages = List<Garage>.from(state.garages)
       ..add(newGarage);
-    emit(state.copyWith(
-      garages: updatedGarages,
-      currentGarageId: newGarage.id,
-    ));
+    emit(state.copyWith(garages: updatedGarages));
   }
 
   void _onUpgradeGarage(GarageEventUpgrade event, Emitter<GarageState> emit) {
