@@ -4,7 +4,9 @@ import 'package:collection/collection.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
+import 'package:uuid/uuid.dart';
 
+import '../data/enums/vehicle_status.dart';
 import '../data/models/city.dart';
 import '../data/models/garage.dart';
 import '../data/models/map_tile.dart';
@@ -13,9 +15,13 @@ import '../data/models/vehicle.dart';
 import '../features/cities_management/bloc/cities_bloc.dart';
 import '../features/fuel_stations/bloc/fuel_stations_bloc.dart';
 import '../features/fuel_stations/bloc/fuel_stations_event.dart';
+import '../features/game_alerts/bloc/game_alerts_bloc.dart';
+import '../features/game_alerts/bloc/game_alerts_event.dart';
 import '../features/garage/garage_bloc.dart';
 import '../features/garage/garage_event.dart';
 import '../features/vehicles_management/bloc/vehicles_management_bloc.dart';
+import '../features/vehicles_management/bloc/vehicles_management_event.dart';
+import '../utils/map_extension.dart';
 import 'bloc/game_bloc.dart';
 import 'game_alert.dart';
 import 'game_tile.dart';
@@ -34,6 +40,7 @@ class TransportGame extends FlameGame<TransportWorld> with DragCallbacks {
     required this.vehiclesBloc,
     required this.citiesBloc,
     required this.garageBloc,
+    required this.alertsBloc,
     required TransportWorld world,
     required CameraComponent camera,
   }) : super(world: world, camera: camera);
@@ -43,38 +50,70 @@ class TransportGame extends FlameGame<TransportWorld> with DragCallbacks {
   final VehiclesManagementBloc vehiclesBloc;
   final CitiesBloc citiesBloc;
   final GarageBloc garageBloc;
+  final GameAlertsBloc alertsBloc;
 
   Vector2? targetPosition = Vector2.all(0);
   static const double speed = 200.0;
 
   int unlockedTiles = 0;
 
-  void tryToDiscoverTile(Vector2 position) {
-    gameBloc.add(
-      UnlockTile(
-        position.toMapTilePosition(),
-        () => citiesBloc.add(
-          BuyNewCity(position.toMapTilePosition()),
-        ),
-      ),
+  void tryToDiscoverTile(GameTile tile) {
+    if (!world.tiles
+        .isAnyNeighborDiscovered(tile.gridPosition.toMapTilePosition())) {
+      alertsBloc.add(GameAlertNoNeighbourTileDiscovered(const Uuid().v4()));
+      return;
+    }
+
+    final position = tile.gridPosition.toMapTilePosition();
+    final translation = world.tiles.translation;
+    final mapTile = world.tiles[(position.y - translation.y).toInt()]
+        [(position.x - translation.x).toInt()];
+
+    gameBloc.add(UnlockTile(mapTile));
+  }
+
+  void truckArrived(Vehicle vehicle) {
+    final cargoRevenue = vehicle.cargos.fold<double>(
+      0.0,
+      (prev, curr) => prev + (curr.coins ?? 0.0),
     );
+
+    gameBloc.add(GainCoins(cargoRevenue.toInt()));
+    alertsBloc.add(GameAlertTruckArrived(vehicle.name));
+    alertsBloc.add(GameAlertGainCoins(cargoRevenue.toInt()));
+    vehiclesBloc.add(UpdateVehicleStatus(vehicle.id, VehicleStatus.idle));
+    vehiclesBloc.add(ClearVehicleCargo(vehicleId: vehicle.id));
   }
 
   void sendTruck(Vehicle vehicle) {
-    final startCityPosition = citiesBloc.state.cities
-        .firstWhere(
-          (City city) => city.id == vehicle.cargos.first.sourceId,
-        )
-        .position
-        .toMapSizeVector();
-    final endCityPosition = citiesBloc.state.cities
-        .firstWhere(
-          (City city) => city.id == vehicle.cargos.first.targetId,
-        )
-        .position
-        .toMapSizeVector();
+    if (vehicle.cargos.isEmpty) {
+      showAlert('Vehicle has no cargo');
+      return;
+    }
 
-    world.showTruckWithRoute(vehicle, startCityPosition, endCityPosition);
+    final cities = [
+      vehicle.cargos.first.sourceId,
+      ...vehicle.cargos.map((toElement) => toElement.targetId),
+    ];
+
+    final positions = cities
+        .map((cityId) => citiesBloc.state.cities
+            .firstWhere((city) => city.id == cityId)
+            .position
+            .toMapSizeVector())
+        .toList();
+
+    if (world.showTruckWithRoute(vehicle, positions)) {
+      vehiclesBloc.add(
+        UpdateVehicleStatus(vehicle.id, VehicleStatus.inTransit),
+      );
+      for (final cargo in vehicle.cargos) {
+        citiesBloc.add(RemoveCargoFromCity(
+          cityId: cargo.sourceId,
+          cargoId: cargo.id,
+        ));
+      }
+    }
   }
 
   @override
@@ -82,13 +121,15 @@ class TransportGame extends FlameGame<TransportWorld> with DragCallbacks {
     gameBloc.stream.listen((GameState state) {
       if (state.unlockedTiles.length > unlockedTiles) {
         unlockedTiles = state.unlockedTiles.length;
-        for (final List<GameTile> row in world.tiles) {
-          for (final GameTile tile in row) {
-            if (!tile.isDiscovered &&
-                state.unlockedTiles.any((MapTile item) =>
-                    item.position.isGridEqual(tile.gridPosition))) {
-              tile.isDiscovered = true;
-            }
+        final worldTiles = world.children.whereType<GameTile>();
+        for (final tile in worldTiles) {
+          if (tile.isDiscovered) {
+            continue;
+          }
+          if (state.unlockedTiles.any(
+              (MapTile item) => item.position.isGridEqual(tile.gridPosition))) {
+            tile.isDiscovered = true;
+            world.tiles.discoverTile(tile.gridPosition.toMapTilePosition());
           }
         }
       }
@@ -103,21 +144,24 @@ class TransportGame extends FlameGame<TransportWorld> with DragCallbacks {
     add(AlertComponent(message: message));
   }
 
-  void openCityOverview(Vector2 cityCoords) {
+  void openCityOverview(Vector2 cityCoords, String cityName) {
     final MapTilePosition cityPosition =
         MapTilePosition(x: cityCoords.x, y: cityCoords.y);
-    final City? city = citiesBloc.state.cities.firstWhereOrNull(
-      (City element) => element.position == cityPosition,
-    );
 
-    if (city != null) {
-      citiesBloc.add(ChangeCity(cityPosition));
-      overlays.remove(cityOverview);
-      overlays.add(cityOverview);
-    }
-    final Garage? cityGarage = garageBloc.state.getGarageByCity(city?.id);
-    if (cityGarage != null) {
-      garageBloc.add(ShowGarage(garageId: cityGarage.id));
+    citiesBloc.add(ChangeCity(cityPosition, cityName));
+    overlays.remove(cityOverview);
+    overlays.add(cityOverview);
+  }
+
+  void openGarageOverview(Vector2 garageCoords) {
+    final MapTilePosition garagePosition =
+        MapTilePosition(x: garageCoords.x, y: garageCoords.y);
+    final Garage? garage = garageBloc.state.garages.firstWhereOrNull(
+      (Garage element) => element.position == garagePosition,
+    );
+    final garageId = garage?.id;
+    if (garageId != null) {
+      garageBloc.add(ShowGarage(garageId: garageId));
       overlays.remove(garageOverview);
       overlays.add(garageOverview);
     }
@@ -157,10 +201,27 @@ class TransportGame extends FlameGame<TransportWorld> with DragCallbacks {
       }
     }
 
+    final fuelRatio = stationsBloc.state.primary.fuelRefillRate * dt;
+    final vehicleFuelRatio = stationsBloc.state.primary.vehicleRefillRate * dt;
+
     stationsBloc.add(FuelStationsEventAddFuel(
       '',
-      stationsBloc.state.primary.fuelRefillRate * dt,
+      fuelRatio,
     ));
+
+    final idleTrucks = vehiclesBloc.state.boughtTrucks
+        .where((item) => item.status == VehicleStatus.idle);
+    for (final truck in idleTrucks) {
+      if (stationsBloc.state.primary.currentFuelLevel > vehicleFuelRatio) {
+        if (!truck.isFullTank()) {
+          vehiclesBloc.add(RefillVehicle(truck.id, vehicleFuelRatio * 10));
+          stationsBloc.add(FuelStationsEventRefillVehicle(
+            '',
+            vehicleFuelRatio,
+          ));
+        }
+      }
+    }
 
     super.update(dt);
   }

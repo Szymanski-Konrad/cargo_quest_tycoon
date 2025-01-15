@@ -13,6 +13,7 @@ class MapTile with _$MapTile {
     required MapTilePosition position,
     @Default(false) bool isUnlocked,
     required MapTileType type,
+    @Default(false) bool hasGarage,
     MapTileAward? extraAward,
     // There can be some crates, vehicle parts, new truck to unlock etc.
     String? otherObject,

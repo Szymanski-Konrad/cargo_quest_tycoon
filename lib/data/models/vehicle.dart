@@ -1,10 +1,12 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:uuid/uuid.dart';
 
 import '../enums/map_tile_type.dart';
 import '../enums/vehicle_part_type.dart';
 import '../enums/vehicle_status.dart';
 import '../enums/vehicle_type.dart';
 import 'cargo.dart';
+import 'market_vehicle.dart';
 import 'vehicle_part.dart';
 
 part 'vehicle.freezed.dart';
@@ -13,12 +15,12 @@ part 'vehicle.g.dart';
 @freezed
 class Vehicle with _$Vehicle {
   factory Vehicle({
-    String? id,
+    required String id,
     required String name,
     required String model,
     @Default(<VehiclePart>[]) List<VehiclePart> parts,
     required double fuelPerPixel,
-    required int fuelCapacity,
+    required double fuelCapacity,
     required double currentFuelLevel,
 
     /// Max speed in pixels per second
@@ -28,7 +30,7 @@ class Vehicle with _$Vehicle {
     required double maxCargoWeight,
     required int cost,
     double? premiumCost,
-    String? cityAssignedId,
+    String? garageId,
     required VehicleType preferredVehicleType,
     required double otherCargoTypeEffience,
     @Default(VehicleStatus.idle) VehicleStatus status,
@@ -41,6 +43,11 @@ class Vehicle with _$Vehicle {
 
   bool hasEnoughFuel(double distance) =>
       currentFuelLevel >= distance * fuelPerPixel;
+
+  bool canCarryCargo(double cargoWeight) =>
+      maxCargoWeight - cargoSize >= cargoWeight;
+
+  bool isFullTank() => currentFuelLevel >= fuelCapacity;
 
   double maxDistance() => (currentFuelLevel / fuelPerPixel) / 2;
 
@@ -64,19 +71,19 @@ class Vehicle with _$Vehicle {
   }
 
   Vehicle _upgradeVehicle() {
-    final int newFuelCapacity = parts
+    final newFuelCapacity = parts
         .where((VehiclePart part) => part.type == VehiclePartType.tank)
         .fold(fuelCapacity,
-            (int prev, VehiclePart part) => prev + part.realValue.toInt());
-    final double newFuelPerPixel = parts
+            (double prev, VehiclePart part) => prev + part.realValue);
+    final newFuelPerPixel = parts
         .where((VehiclePart part) => part.type == VehiclePartType.wheel)
         .fold(fuelPerPixel,
             (double prev, VehiclePart part) => prev + part.realValue);
-    final double newMaxCargoWeight = parts
+    final newMaxCargoWeight = parts
         .where((VehiclePart part) => part.type == VehiclePartType.suspension)
         .fold(maxCargoWeight,
             (double prev, VehiclePart part) => prev + part.realValue);
-    final int newMaxSpeed = parts
+    final newMaxSpeed = parts
         .where((VehiclePart part) => part.type == VehiclePartType.engine)
         .fold(maxSpeed,
             (int prev, VehiclePart part) => prev + part.realValue.toInt());
@@ -94,14 +101,36 @@ class Vehicle with _$Vehicle {
       case MapTileType.road:
       case MapTileType.city:
       case MapTileType.headquarter:
+      case MapTileType.farmland:
         return maxSpeed * 1.0;
       case MapTileType.forest:
         return maxSpeed * 0.8;
       case MapTileType.gravel:
+      case MapTileType.desert:
         return maxSpeed * 0.7;
       case MapTileType.mountain:
-      case MapTileType.water:
-        return maxSpeed * 0.01;
+      case MapTileType.tundra:
+        return maxSpeed * 0.3;
+      case MapTileType.savanna:
+        return maxSpeed * 0.85;
     }
+  }
+
+  static Vehicle fromMarketVehicle(MarketVehicle marketVehicle) {
+    return Vehicle(
+      id: const Uuid().v4(),
+      name: marketVehicle.name,
+      model: marketVehicle.model,
+      parts: marketVehicle.parts,
+      fuelPerPixel: marketVehicle.fuelPerPixel,
+      fuelCapacity: marketVehicle.fuelCapacity,
+      currentFuelLevel: marketVehicle.fuelCapacity,
+      maxSpeed: marketVehicle.maxSpeed,
+      maxCargoWeight: marketVehicle.maxCargoWeight,
+      cost: marketVehicle.cost,
+      premiumCost: marketVehicle.premiumCost,
+      preferredVehicleType: marketVehicle.preferredVehicleType,
+      otherCargoTypeEffience: marketVehicle.otherCargoTypeEffience,
+    );
   }
 }

@@ -52,18 +52,11 @@ final class GainPremiumCrates extends GameEvent {
 }
 
 final class UnlockTile extends GameEvent {
-  const UnlockTile(
-    this.tilePosition,
-    this.onCityUnlocked,
-  );
-  final MapTilePosition tilePosition;
-  final VoidCallback onCityUnlocked;
+  const UnlockTile(this.tile);
+  final MapTile tile;
 
   @override
-  List<Object> get props => <Object>[
-        tilePosition,
-        onCityUnlocked,
-      ];
+  List<Object> get props => <Object>[tile];
 }
 
 final class ShowBuyTruckDialog extends GameEvent {

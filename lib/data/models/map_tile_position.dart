@@ -1,6 +1,8 @@
 import 'package:flame/components.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'map_tile.dart';
+
 part 'map_tile_position.freezed.dart';
 part 'map_tile_position.g.dart';
 
@@ -20,4 +22,7 @@ extension MapTilePositionExtension on MapTilePosition {
 
   bool isGridEqual(Vector2 gridPosition) =>
       x == gridPosition.x && y == gridPosition.y;
+
+  bool isPointEqual(MapTilePosition position) =>
+      x == position.x && y == position.y;
 }

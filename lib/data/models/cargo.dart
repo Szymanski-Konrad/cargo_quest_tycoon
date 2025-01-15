@@ -15,9 +15,12 @@ class Cargo with _$Cargo {
     required double weight,
     required DateTime createdAt,
     required DateTime expiresAt,
+
+    /// id of vehicle that is assigned to this cargo
+    String? vehicleId,
     @Default(1.0) double experienceFactor,
-    double? coins,
     double? premiumValue,
+    double? coins,
     int? standardCrate,
     int? premiumCrate,
   }) = _Cargo;

@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:flame/collisions.dart';
@@ -6,7 +5,7 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 
 import '../data/models/vehicle.dart';
-import 'bloc/game_bloc.dart';
+import '../features/vehicles_management/bloc/vehicles_management_event.dart';
 import 'path_finder.dart';
 import 'transport_world.dart';
 
@@ -22,33 +21,24 @@ class GameVehicle extends PositionComponent
   final List<PathTile> path;
   final String pathId;
   int currentPathIndex = 0;
-  bool returnToBase = false;
   late final RectangleHitbox hitbox;
   final ui.Color baseColor = Colors.black;
   Vehicle vehicle;
 
-  @override
-  Future<void> onLoad() async {
-    super.onLoad();
-    hitbox =
-        RectangleHitbox(size: Vector2(32, 32), position: Vector2(-16, -16));
-    add(hitbox);
-  }
-
-  void generateReturnRoute() {
-    returnToBase = true;
-    final List<PathTile> returnPath = path.reversed.toList();
-    path.clear();
-    path.addAll(returnPath);
-    currentPathIndex = 0;
-    position.setValues(path.first.position.x, path.first.position.y);
-  }
+  // @override
+  // Future<void> onLoad() async {
+  //   super.onLoad();
+  //   hitbox =
+  //       RectangleHitbox(size: Vector2(32, 32), position: Vector2(-16, -16));
+  //   add(hitbox);
+  // }
 
   void updateFuel(double distance, double dt) {
     final double fuelConsumption = vehicle.fuelPerPixel * distance;
     vehicle = vehicle.copyWith(
       currentFuelLevel: vehicle.currentFuelLevel - fuelConsumption,
     );
+    world.game.vehiclesBloc.add(VehicleFuelBurned(vehicle.id, fuelConsumption));
   }
 
   @override
@@ -68,17 +58,9 @@ class GameVehicle extends PositionComponent
       if (position.distanceTo(nextPosition.position) < 1) {
         currentPathIndex++;
         if (currentPathIndex >= path.length) {
-          if (returnToBase) {
-            final double coins = path.length * vehicle.maxCargoWeight;
-            world.game.gameBloc.add(GainCoins(coins.toInt()));
-            world.removePath(pathId);
-            // TODO(me): Inform that truck end his route
-            world.remove(this);
-            world.game.showAlert('Truck delivered $coins coins');
-            world.game.showAlert('Truck arrived at destination');
-          } else {
-            generateReturnRoute();
-          }
+          world.removePath(pathId);
+          world.remove(this);
+          world.game.truckArrived(vehicle);
         }
       }
     }
@@ -86,8 +68,6 @@ class GameVehicle extends PositionComponent
 
   @override
   void render(ui.Canvas canvas) {
-    final String speed =
-        vehicle.terrainSpeed(path[currentPathIndex].type).toStringAsFixed(1);
     canvas.drawCircle(
       Offset.zero,
       16,
@@ -100,7 +80,8 @@ class GameVehicle extends PositionComponent
       ..pushStyle(ui.TextStyle(
           color: Colors.white,
           background: ui.Paint()..color = const ui.Color(0xFF000000)))
-      ..addText('Speed: $speed, to base: $returnToBase');
+      ..addText(
+          '${(vehicle.currentFuelLevel * 100 / vehicle.fuelCapacity).toStringAsFixed(1)}%');
 
     final ui.Paragraph paragraph = builder.build()
       ..layout(ui.ParagraphConstraints(width: size.x * 2));

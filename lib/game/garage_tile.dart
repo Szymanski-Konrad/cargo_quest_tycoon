@@ -4,35 +4,26 @@ import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 
-import '../data/enums/map_tile_type.dart';
 import 'game_tile.dart';
 import 'transport_world.dart';
 
-class CityTile extends GameTile
+class GarageTile extends GameTile
     with HasWorldReference<TransportWorld>, TapCallbacks {
-  CityTile({
+  GarageTile({
     required super.gridPosition,
-    required this.cityName,
-  }) : super(type: MapTileType.city);
+    required super.type,
+    required this.garageName,
+  });
 
-  final String cityName;
+  final String garageName;
 
   @override
   void onTapUp(TapUpEvent event) {
-    if (!isDiscovered) {
-      discoverTile();
-      return;
-    }
-
-    world.openCityOverview(gridPosition, cityName);
+    world.openGarageOverview(gridPosition);
   }
 
   @override
   void render(Canvas canvas) {
-    if (!isDiscovered) {
-      super.render(canvas);
-      return;
-    }
     final ui.Paint paint = Paint()..color = type.color;
     final ui.Rect rect = Offset.zero & size.toSize();
 
@@ -40,8 +31,8 @@ class CityTile extends GameTile
       textAlign: TextAlign.center,
       fontSize: 10,
     ))
-      ..pushStyle(ui.TextStyle(color: Colors.white))
-      ..addText(cityName);
+      ..pushStyle(ui.TextStyle(color: Colors.teal))
+      ..addText(garageName);
 
     final ui.Paragraph paragraph = builder.build()
       ..layout(ui.ParagraphConstraints(width: size.x));

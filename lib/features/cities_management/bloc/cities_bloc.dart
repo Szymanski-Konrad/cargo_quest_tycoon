@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../data/models/cargo.dart';
 import '../../../data/models/city.dart';
 import '../../../data/models/map_tile_position.dart';
 import '../../../utils/random_data_generator.dart';
@@ -18,11 +19,73 @@ class CitiesBloc extends Bloc<CitiesEvent, CitiesState> {
     on<CloseCity>(_onCloseCity);
     on<BuyNewCity>(_onBuyNewCity);
     on<RefreshCityCargos>(_onRefreshCityCargos);
+    on<RemoveCargoFromCity>(_onRemoveCargoFromCity);
+    on<AssignCargoToVehicle>(_onAssignCargoToVehicle);
+    on<UnassignCargoFromVehicle>(_onUnassignCargoFromVehicle);
+  }
+
+  void _onRemoveCargoFromCity(
+      RemoveCargoFromCity event, Emitter<CitiesState> emit) {
+    final List<City> cities = List.of(state.cities);
+    final int cityIndex =
+        state.cities.indexWhere((City element) => element.id == event.cityId);
+    if (cityIndex == -1) {
+      return;
+    }
+    final List<Cargo> cargos = List.of(cities[cityIndex].cargos);
+    cargos.removeWhere((Cargo element) => element.id == event.cargoId);
+    final City city = cities[cityIndex].copyWith(cargos: cargos);
+    cities[cityIndex] = city;
+    emit(state.copyWith(cities: cities));
+  }
+
+  void _onUnassignCargoFromVehicle(
+      UnassignCargoFromVehicle event, Emitter<CitiesState> emit) {
+    _assignVehicleIdToCargo(
+      cityId: event.cityId,
+      vehicleId: null,
+      cargoId: event.cargoId,
+    );
+  }
+
+  void _onAssignCargoToVehicle(
+      AssignCargoToVehicle event, Emitter<CitiesState> emit) {
+    _assignVehicleIdToCargo(
+      cityId: event.cityId,
+      vehicleId: event.vehicleId,
+      cargoId: event.cargoId,
+    );
+  }
+
+  void _assignVehicleIdToCargo(
+      {required String cityId,
+      required String? vehicleId,
+      required String cargoId}) {
+    final List<City> cities = List.of(state.cities);
+    final int cityIndex =
+        state.cities.indexWhere((City element) => element.id == cityId);
+    if (cityIndex == -1) {
+      return;
+    }
+    final List<Cargo> cargos = List.of(cities[cityIndex].cargos);
+    final int cargoIndex =
+        cargos.indexWhere((Cargo element) => element.id == cargoId);
+    if (cargoIndex == -1) {
+      return;
+    }
+    final Cargo cargo = cargos[cargoIndex].copyWith(vehicleId: vehicleId);
+    cargos[cargoIndex] = cargo;
+    final City city = cities[cityIndex].copyWith(cargos: cargos);
+    cities[cityIndex] = city;
+    emit(state.copyWith(cities: cities));
   }
 
   void _onRefreshCityCargos(
       RefreshCityCargos event, Emitter<CitiesState> emit) {
     final List<City> cities = List.of(state.cities);
+    if (cities.length < 2) {
+      return;
+    }
     final int cityIndex =
         state.cities.indexWhere((City element) => element.id == event.cityId);
     if (cityIndex == -1) {
@@ -42,7 +105,21 @@ class CitiesBloc extends Bloc<CitiesEvent, CitiesState> {
     final City? city = cities.firstWhereOrNull(
       (City element) => element.position == event.position,
     );
-    emit(state.copyWith(currentCityId: city?.id));
+    if (city == null) {
+      emit(state.copyWith(
+        currentCityId: null,
+        lockedCity: City(
+          id: const Uuid().v4(),
+          position: event.position,
+          name: event.cityName,
+        ),
+      ));
+    } else {
+      emit(state.copyWith(
+        currentCityId: city.id,
+        lockedCity: null,
+      ));
+    }
   }
 
   void _onCloseCity(CloseCity event, Emitter<CitiesState> emit) {
@@ -56,7 +133,7 @@ class CitiesBloc extends Bloc<CitiesEvent, CitiesState> {
     final City newCity = City(
       id: id,
       position: event.cityPosition,
-      name: 'City ${state.cities.length + 1}',
+      name: event.cityName,
       cargos: cities.length > 1
           ? RandomDataGenerator.generateRandomCargos(
               id,
@@ -68,8 +145,9 @@ class CitiesBloc extends Bloc<CitiesEvent, CitiesState> {
     );
 
     cities.add(newCity);
-    print('New city added: ${newCity.name}');
-    print('Cities counter: ${cities.length}');
-    emit(state.copyWith(cities: cities));
+    emit(state.copyWith(
+      cities: cities,
+      currentCityId: id,
+    ));
   }
 }

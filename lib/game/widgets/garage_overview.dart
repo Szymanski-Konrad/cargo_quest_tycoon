@@ -1,4 +1,3 @@
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -8,6 +7,8 @@ import '../../data/models/vehicle.dart';
 import '../../features/garage/garage_bloc.dart';
 import '../../features/garage/garage_event.dart';
 import '../../features/vehicles_management/bloc/vehicles_management_bloc.dart';
+import '../../features/vehicles_management/bloc/vehicles_management_event.dart';
+import '../../game_view.dart';
 
 class GarageOverview extends StatelessWidget {
   const GarageOverview({
@@ -29,7 +30,7 @@ class GarageOverview extends StatelessWidget {
       return Align(
         alignment: Alignment.bottomLeft,
         child: Container(
-          height: MediaQuery.of(context).size.height * 0.2,
+          height: 200,
           width: double.infinity,
           color: Colors.green.shade200,
           child: const Text('Please build garage firstly'),
@@ -56,7 +57,7 @@ class GarageOverview extends StatelessWidget {
     return Align(
       alignment: Alignment.bottomLeft,
       child: Container(
-        height: MediaQuery.of(context).size.height * 0.2,
+        height: 200,
         color: Colors.green.shade200,
         child: Column(
           children: <Widget>[
@@ -74,18 +75,14 @@ class GarageOverview extends StatelessWidget {
                     return GestureDetector(
                       onTap: () {
                         if (availableVehicles.isEmpty) {
-                          print('No available vehicles');
+                          debugPrint('No available vehicles');
                           return;
                         }
-                        final String? vehicleId = availableVehicles.first.id;
-                        if (vehicleId != null) {
-                          context.read<GarageBloc>().add(
-                                AssignVehicleToGarage(
-                                  garageId: selectedGarage.id,
-                                  vehicleId: vehicleId,
-                                ),
-                              );
-                        }
+
+                        showDialog(
+                          context: context,
+                          builder: (context) => const NonAssignedVehicles(),
+                        );
                       },
                       child: const Icon(Icons.add),
                     );
@@ -129,46 +126,59 @@ class VehicleCard extends StatelessWidget {
     );
 
     return GestureDetector(
-      onTap: () => context.read<GarageBloc>().add(
-            ChangeVehicle(vehicleId: vehicle.id ?? ''),
-          ),
+      onTap: () =>
+          context.read<GarageBloc>().add(ChangeVehicle(vehicleId: vehicle.id)),
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
           children: [
             Icon(
-              Icons.directions_car,
+              isCurrentVehicle ? Icons.car_crash : Icons.directions_car,
               color: isCurrentVehicle ? Colors.white : null,
             ),
             Text(vehicle.name),
             SizedBox(
               width: 50,
-              height: 5,
+              height: 6,
               child: LinearProgressIndicator(
                 value: vehicle.currentFuelLevel / vehicle.fuelCapacity,
               ),
             ),
-            SizedBox(
-              height: 5,
-            ),
+            const SizedBox(height: 6),
             SizedBox(
               width: 50,
-              height: 5,
+              height: 10,
               child: LinearProgressIndicator(
                 value: vehicle.cargoSize / vehicle.maxCargoWeight,
               ),
             ),
             if (vehicle.cargos.isNotEmpty)
-              SizedBox(
-                height: 20,
-                child: IconButton(
-                  onPressed: () {
-                    onSendVehicle(vehicle);
-                  },
-                  iconSize: 20.0,
-                  icon: Icon(Icons.drive_file_move),
-                ),
-              )
+              Row(
+                children: [
+                  SizedBox(
+                    height: 32,
+                    child: IconButton(
+                      onPressed: () {
+                        onSendVehicle(vehicle);
+                      },
+                      iconSize: 20.0,
+                      icon: const Icon(Icons.drive_file_move),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 32,
+                    child: IconButton(
+                      onPressed: () {
+                        context
+                            .read<VehiclesManagementBloc>()
+                            .add(ClearVehicleCargo(vehicleId: vehicleId));
+                      },
+                      iconSize: 20.0,
+                      icon: const Icon(Icons.clear),
+                    ),
+                  ),
+                ],
+              ),
           ],
         ),
       ),

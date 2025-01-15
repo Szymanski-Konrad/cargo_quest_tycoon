@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'cargo.dart';
+import 'map_tile_position.dart';
 
 part 'garage.freezed.dart';
 part 'garage.g.dart';
@@ -9,7 +10,8 @@ part 'garage.g.dart';
 class Garage with _$Garage {
   const factory Garage({
     required String id,
-    required String cityId,
+    required MapTilePosition position,
+    required String name,
     required int slots,
     @Default(<String>[]) List<String> vehicles,
     @Default(<Cargo>[]) List<Cargo> cargos,

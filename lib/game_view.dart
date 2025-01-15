@@ -4,10 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'core/constants/predefined_vehicles.dart';
+import 'data/models/market_vehicle.dart';
 import 'data/models/vehicle.dart';
 import 'features/cities_management/bloc/cities_bloc.dart';
 import 'features/fuel_stations/bloc/fuel_stations_bloc.dart';
+import 'features/game_alerts/bloc/game_alerts_bloc.dart';
+import 'features/game_alerts/bloc/game_alerts_state.dart';
 import 'features/garage/garage_bloc.dart';
+import 'features/garage/garage_event.dart';
 import 'features/vehicles_management/bloc/vehicles_management_bloc.dart';
 import 'features/vehicles_management/bloc/vehicles_management_event.dart';
 import 'game/bloc/game_bloc.dart';
@@ -32,45 +36,60 @@ class GameView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          GameWidget.controlled(
-            gameFactory: () {
-              final TransportWorld myWorld = TransportWorld();
-              return TransportGame(
-                gameBloc: context.read<GameBloc>(),
-                stationsBloc: context.read<FuelStationsBloc>(),
-                vehiclesBloc: context.read<VehiclesManagementBloc>(),
-                citiesBloc: context.read<CitiesBloc>(),
-                garageBloc: context.read<GarageBloc>(),
-                world: myWorld,
-                camera: CameraComponent(
+      body: BlocListener<GameAlertsBloc, GameAlertsState>(
+        listener: (context, state) {
+          final alert = state.gameAlert;
+          if (alert != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                behavior: SnackBarBehavior.floating,
+                content: Text(alert.message),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
+        },
+        child: Stack(
+          children: [
+            GameWidget.controlled(
+              gameFactory: () {
+                final TransportWorld myWorld = TransportWorld();
+                return TransportGame(
+                  gameBloc: context.read<GameBloc>(),
+                  stationsBloc: context.read<FuelStationsBloc>(),
+                  vehiclesBloc: context.read<VehiclesManagementBloc>(),
+                  citiesBloc: context.read<CitiesBloc>(),
+                  garageBloc: context.read<GarageBloc>(),
+                  alertsBloc: context.read<GameAlertsBloc>(),
                   world: myWorld,
-                  viewport: MaxViewport(),
-                ),
-              );
-            },
-            initialActiveOverlays: const [
-              garageOverview,
-            ],
-            overlayBuilderMap: {
-              cityOverview: (BuildContext context, TransportGame game) =>
-                  CityOverview(
-                    onClose: () => game.overlays.remove(cityOverview),
+                  camera: CameraComponent(
+                    world: myWorld,
+                    viewport: MaxViewport(),
                   ),
-              availableTrucks: (BuildContext context, Object? game) =>
-                  Container(),
-              garageOverview: (BuildContext context, TransportGame game) =>
-                  GarageOverview(
-                    onClose: () => game.overlays.remove(garageOverview),
-                    onSendVehicle: (Vehicle vehicle) {
-                      game.sendTruck(vehicle);
-                    },
-                  ),
-            },
-          ),
-          const GameStatsBar(),
-        ],
+                );
+              },
+              // initialActiveOverlays: const [
+              //   garageOverview,
+              // ],
+              overlayBuilderMap: {
+                cityOverview: (BuildContext context, TransportGame game) =>
+                    CityOverview(
+                      onClose: () => game.overlays.remove(cityOverview),
+                    ),
+                availableTrucks: (BuildContext context, Object? game) =>
+                    Container(),
+                garageOverview: (BuildContext context, TransportGame game) =>
+                    GarageOverview(
+                      onClose: () => game.overlays.remove(garageOverview),
+                      onSendVehicle: (Vehicle vehicle) {
+                        game.sendTruck(vehicle);
+                      },
+                    ),
+              },
+            ),
+            const GameStatsBar(),
+          ],
+        ),
       ),
     );
   }
@@ -101,7 +120,7 @@ class VehicleShop extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             child: Row(
               children: predefinedVehicles
-                  .map((Vehicle vehicle) => ShopVehicleCard(
+                  .map((MarketVehicle vehicle) => ShopVehicleCard(
                         vehicle: vehicle,
                         onTruckBought: () {
                           // Navigator.of(context).pop();
@@ -118,6 +137,90 @@ class VehicleShop extends StatelessWidget {
   }
 }
 
+class NonAssignedVehicles extends StatelessWidget {
+  const NonAssignedVehicles({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final List<Vehicle> vehicles = context
+        .select((VehiclesManagementBloc bloc) => bloc.state.boughtTrucks);
+
+    final nonSelectedVehicles = vehicles.where((Vehicle vehicle) {
+      return vehicle.garageId == null;
+    }).toList();
+
+    debugPrint('Nonassigned vehicles:  ${nonSelectedVehicles.length}');
+
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.5,
+      width: MediaQuery.of(context).size.width * 0.5,
+      margin: const EdgeInsets.all(32.0),
+      color: Colors.white,
+      child: Column(
+        children: [
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            icon: const Icon(Icons.close),
+            color: Colors.black,
+            iconSize: 40,
+          ),
+          const Center(child: Text('Select vehicle')),
+          SingleChildScrollView(
+            child: Column(
+              children: nonSelectedVehicles
+                  .map((Vehicle vehicle) => VehicleCard(
+                        vehicle: vehicle,
+                      ))
+                  .toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class VehicleCard extends StatelessWidget {
+  const VehicleCard({
+    super.key,
+    required this.vehicle,
+  });
+
+  final Vehicle vehicle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Icon(Icons.fire_truck),
+        Text(vehicle.name),
+        ElevatedButton(
+          child: const Icon(Icons.assignment_add),
+          onPressed: () {
+            final currentGarage =
+                context.read<GarageBloc>().state.currentGarage;
+            if (currentGarage == null) {
+              debugPrint('No garage selected');
+              return;
+            }
+            context.read<VehiclesManagementBloc>().add(AssignVehicle(
+                  vehicleId: vehicle.id,
+                  garageId: currentGarage.id,
+                ));
+            context.read<GarageBloc>().add(AssignVehicleToGarage(
+                  vehicleId: vehicle.id,
+                  garageId: currentGarage.id,
+                ));
+            Navigator.of(context).pop();
+          },
+        ),
+      ],
+    );
+  }
+}
+
 class ShopVehicleCard extends StatelessWidget {
   const ShopVehicleCard({
     super.key,
@@ -125,7 +228,7 @@ class ShopVehicleCard extends StatelessWidget {
     required this.onTruckBought,
   });
 
-  final Vehicle vehicle;
+  final MarketVehicle vehicle;
   final VoidCallback onTruckBought;
 
   @override

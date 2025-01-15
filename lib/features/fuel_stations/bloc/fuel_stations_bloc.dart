@@ -15,8 +15,8 @@ class FuelStationsBloc extends Bloc<FuelStationsEvent, FuelStationsState> {
             location: MapTilePosition(x: 0, y: 0),
             fuelCapacity: 2000,
             currentFuelLevel: 1000,
-            fuelRefillRate: 1,
-            vehicleRefillRate: 1,
+            fuelRefillRate: 5,
+            vehicleRefillRate: 5,
           )),
         ) {
     on<FuelStationsEventUpgrade>(_onUpgrade);

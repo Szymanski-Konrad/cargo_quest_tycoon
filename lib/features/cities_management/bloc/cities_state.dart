@@ -5,6 +5,7 @@ class CitiesState with _$CitiesState {
   const factory CitiesState({
     @Default([]) List<City> cities,
     String? currentCityId,
+    City? lockedCity,
   }) = _CitiesState;
   const CitiesState._();
 

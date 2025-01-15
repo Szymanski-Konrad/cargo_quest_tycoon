@@ -13,7 +13,6 @@ class GameTile extends PositionComponent
   GameTile({
     required this.type,
     required this.gridPosition,
-    required this.number,
     this.isDiscovered = false,
   }) : super(
           size: Vector2.all(GameConstants.mapTileSize),
@@ -21,7 +20,6 @@ class GameTile extends PositionComponent
         );
   MapTileType type;
   final Vector2 gridPosition;
-  final int number;
   bool isDiscovered = false;
 
   @override
@@ -34,7 +32,7 @@ class GameTile extends PositionComponent
   }
 
   void discoverTile() {
-    game.tryToDiscoverTile(gridPosition);
+    game.tryToDiscoverTile(this);
   }
 
   @override
@@ -43,23 +41,10 @@ class GameTile extends PositionComponent
       ..color = isDiscovered ? type.color : Colors.grey;
     final ui.Rect rect = Offset.zero & size.toSize();
 
-    final ui.ParagraphBuilder builder = ui.ParagraphBuilder(ui.ParagraphStyle(
-      textAlign: TextAlign.center,
-      fontSize: 10,
-    ))
-      ..pushStyle(ui.TextStyle(color: Colors.white))
-      ..addText('${gridPosition.x} ${gridPosition.y}');
-    // ..addText(type.isDrivable ? type.name.toUpperCase() : 'x ${type.name}');
-
-    final ui.Paragraph paragraph = builder.build()
-      ..layout(ui.ParagraphConstraints(width: size.x));
-
     canvas.drawRect(rect, paint);
     if (!isDiscovered) {
       paint.color = Colors.black;
       paint.strokeWidth = 2;
-      // canvas.drawLine(rect.bottomRight, rect.topLeft, paint);
-      // canvas.drawLine(rect.bottomLeft, rect.topRight, paint);
       canvas.drawLine(rect.bottomRight, rect.bottomLeft, paint);
       canvas.drawLine(rect.bottomRight, rect.topRight, paint);
 
@@ -77,6 +62,15 @@ class GameTile extends PositionComponent
       canvas.drawParagraph(
           paragraph, rect.center - Offset(size.x / 4, size.y / 4));
     } else {
+      final ui.ParagraphBuilder builder = ui.ParagraphBuilder(ui.ParagraphStyle(
+        textAlign: TextAlign.center,
+        fontSize: 10,
+      ))
+        ..pushStyle(ui.TextStyle(color: Colors.white))
+        ..addText('${gridPosition.x},${gridPosition.y}, ${type.name}');
+
+      final ui.Paragraph paragraph = builder.build()
+        ..layout(ui.ParagraphConstraints(width: size.x));
       canvas.drawParagraph(paragraph, rect.topLeft);
     }
   }
