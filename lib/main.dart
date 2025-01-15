@@ -7,6 +7,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'features/cities_management/bloc/cities_bloc.dart';
 import 'features/fuel_stations/bloc/fuel_stations_bloc.dart';
+import 'features/game_alerts/bloc/game_alerts_bloc.dart';
 import 'features/garage/garage_bloc.dart';
 import 'features/vehicles_management/bloc/vehicles_management_bloc.dart';
 import 'game/bloc/game_bloc.dart';
@@ -29,6 +30,7 @@ class MyApp extends StatelessWidget {
             create: (BuildContext context) => VehiclesManagementBloc()),
         BlocProvider(create: (BuildContext context) => CitiesBloc()),
         BlocProvider(create: (BuildContext context) => GarageBloc()),
+        BlocProvider(create: (BuildContext context) => GameAlertsBloc()),
       ],
       child: MaterialApp(
         localizationsDelegates: const <LocalizationsDelegate>[
