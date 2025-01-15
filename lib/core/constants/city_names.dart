@@ -1,0 +1,22 @@
+const List<String> cityNames = [
+  'Trucksville',
+  'Cargo City',
+  'Freight Town',
+  'Haulburg',
+  'Loadington',
+  'Trailer Park',
+  'Depotville',
+  'Transit Town',
+  'Shippington',
+  'Freightville',
+  'Truckerton',
+  'Cargo Heights',
+  'Haul City',
+  'Loadsville',
+  'Trailer Town',
+  'Depot City',
+  'Transitville',
+  'Shipping City',
+  'Freight Heights',
+  'Truckland'
+];

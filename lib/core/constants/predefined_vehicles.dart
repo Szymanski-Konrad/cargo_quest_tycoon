@@ -1,49 +1,47 @@
 import '../../data/enums/vehicle_type.dart';
-import '../../data/models/vehicle.dart';
+import '../../data/models/market_vehicle.dart';
 
-List<Vehicle> predefinedVehicles = <Vehicle>[
-  Vehicle(
+// TODO(me): Change values for these vehicles, especially the fuelPerPixel
+
+List<MarketVehicle> predefinedVehicles = <MarketVehicle>[
+  MarketVehicle(
     name: 'Default',
     model: 'Cheap',
-    fuelPerPixel: 0.75,
+    fuelPerPixel: 7 / 100,
     fuelCapacity: 600,
-    currentFuelLevel: 600,
     maxSpeed: 60,
     maxCargoWeight: 15,
     cost: 500,
     preferredVehicleType: VehicleType.container,
     otherCargoTypeEffience: 0.9,
   ),
-  Vehicle(
+  MarketVehicle(
     name: 'Speedster',
     model: 'Fast',
-    fuelPerPixel: 1,
+    fuelPerPixel: 12 / 100,
     fuelCapacity: 300,
-    currentFuelLevel: 300,
     maxSpeed: 80,
     maxCargoWeight: 10,
     cost: 1000,
     preferredVehicleType: VehicleType.tanker,
     otherCargoTypeEffience: 0.8,
   ),
-  Vehicle(
+  MarketVehicle(
     name: 'Heavy Hauler',
     model: 'Strong',
-    fuelPerPixel: 3,
+    fuelPerPixel: 15 / 100,
     fuelCapacity: 1000,
-    currentFuelLevel: 700,
     maxSpeed: 40,
     maxCargoWeight: 30,
     cost: 1500,
     preferredVehicleType: VehicleType.flatbed,
     otherCargoTypeEffience: 0.85,
   ),
-  Vehicle(
+  MarketVehicle(
     name: 'Eco Mover',
     model: 'Green',
-    fuelPerPixel: 0.25,
+    fuelPerPixel: 5 / 100,
     fuelCapacity: 400,
-    currentFuelLevel: 400,
     maxSpeed: 70,
     maxCargoWeight: 20,
     cost: 800,

@@ -7,6 +7,8 @@ abstract class GameConstants {
   // Remember to keep this values odd
   static const int mapXSize = 24;
   static const int mapYSize = 18;
+  static final int mapXHalf = (mapXSize / 2).ceil();
+  static final int mapYHalf = (mapYSize / 2).ceil();
 
   /// Map tile size in pixels
   static const double mapTileSize = 48.0;

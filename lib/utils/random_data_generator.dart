@@ -18,10 +18,10 @@ abstract class RandomDataGenerator {
         type: CargoType.values[randomIndex(CargoType.values.length)],
         sourceId: currentCityId,
         targetId: cityIds[randomIndex(cityIds.length)],
-        weight: (10 + random.nextInt(90)).toDouble(),
+        weight: 1 + random.nextInt(5).toDouble(),
         createdAt: DateTime.now(),
         expiresAt: DateTime.now().add(const Duration(minutes: 15)),
-        coins: (10 + random.nextInt(90)).toDouble(),
+        coins: (10 + random.nextInt(150)).toDouble(),
       ),
     );
     return cargos;

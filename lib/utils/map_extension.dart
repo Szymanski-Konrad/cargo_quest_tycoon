@@ -22,6 +22,7 @@ extension MapExtension on List<List<MapTile>> {
   bool isRightNeigbourDiscovered(MapTilePosition position) {
     final int x = (position.x - translation.x).toInt();
     final int y = (position.y - translation.y).toInt();
+
     if (x >= width - 1) {
       return false;
     }
