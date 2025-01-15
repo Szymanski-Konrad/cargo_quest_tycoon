@@ -14,6 +14,7 @@ class GameTile extends PositionComponent
     required this.type,
     required this.gridPosition,
     this.isDiscovered = false,
+    this.hasGarage = false,
   }) : super(
           size: Vector2.all(GameConstants.mapTileSize),
           position: gridPosition * GameConstants.mapTileSize,
@@ -21,10 +22,17 @@ class GameTile extends PositionComponent
   MapTileType type;
   final Vector2 gridPosition;
   bool isDiscovered = false;
+  bool hasGarage = false;
 
   @override
   void onTapUp(TapUpEvent event) {
     if (isDiscovered) {
+      if (game.world.isConnectedToRoad(gridPosition)) {
+        game.openGarageOverview(gridPosition);
+      } else {
+        game.closeGarageOverview();
+        print('Tile ${type} not connected to road');
+      }
       return;
     }
     discoverTile();
@@ -38,7 +46,11 @@ class GameTile extends PositionComponent
   @override
   void render(Canvas canvas) {
     final ui.Paint paint = Paint()
-      ..color = isDiscovered ? type.color : Colors.grey;
+      ..color = isDiscovered
+          ? hasGarage
+              ? Colors.limeAccent
+              : type.color
+          : Colors.grey;
     final ui.Rect rect = Offset.zero & size.toSize();
 
     canvas.drawRect(rect, paint);

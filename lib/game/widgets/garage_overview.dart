@@ -27,13 +27,41 @@ class GarageOverview extends StatelessWidget {
     );
 
     if (selectedGarage == null) {
+      final position =
+          context.select((GarageBloc bloc) => bloc.state.tileToBuildGarage);
+
       return Align(
         alignment: Alignment.bottomLeft,
         child: Container(
           height: 200,
           width: double.infinity,
           color: Colors.green.shade200,
-          child: const Text('Please build garage firstly'),
+          child: Row(
+            children: [
+              CloseButton(onPressed: onClose),
+              Expanded(
+                child: Center(
+                  child: InkWell(
+                    child: const Text(
+                      'Build garage here for \$10',
+                    ),
+                    onTap: () {
+                      if (position != null) {
+                        context.read<GarageBloc>().add(
+                              GaragesEventBuildNew(
+                                garageName: 'Garage',
+                                position: position,
+                              ),
+                            );
+                      } else {
+                        print('Cannot build garage here!');
+                      }
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }

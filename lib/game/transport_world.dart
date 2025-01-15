@@ -12,6 +12,7 @@ import '../data/enums/map_tile_type.dart';
 import '../data/models/map_tile.dart';
 import '../data/models/map_tile_position.dart';
 import '../data/models/vehicle.dart';
+import '../utils/map_extension.dart';
 import '../utils/path_extension.dart';
 import '../utils/random_data_generator.dart';
 import 'city_tile.dart';
@@ -59,6 +60,10 @@ class TransportWorld extends World
     add(pathComponent);
     add(truck);
     return true;
+  }
+
+  bool isConnectedToRoad(Vector2 gridPosition) {
+    return tiles.isRoadNearby(gridPosition.toMapTilePosition());
   }
 
   void openCityOverview(Vector2 gridPosition, String cityName) {

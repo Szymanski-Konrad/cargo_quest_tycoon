@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../data/models/garage.dart';
+import '../../data/models/map_tile_position.dart';
 
 part 'garage_state.freezed.dart';
 part 'garage_state.g.dart';
@@ -12,6 +13,7 @@ class GarageState with _$GarageState {
     @Default([]) List<Garage> garages,
     String? currentGarageId,
     String? selectedVehicleId,
+    MapTilePosition? tileToBuildGarage,
   }) = _GarageState;
   const GarageState._();
 

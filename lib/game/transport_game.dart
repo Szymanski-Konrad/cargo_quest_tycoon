@@ -154,17 +154,14 @@ class TransportGame extends FlameGame<TransportWorld> with DragCallbacks {
   }
 
   void openGarageOverview(Vector2 garageCoords) {
-    final MapTilePosition garagePosition =
-        MapTilePosition(x: garageCoords.x, y: garageCoords.y);
-    final Garage? garage = garageBloc.state.garages.firstWhereOrNull(
-      (Garage element) => element.position == garagePosition,
+    final MapTilePosition garagePosition = MapTilePosition(
+      x: garageCoords.x,
+      y: garageCoords.y,
     );
-    final garageId = garage?.id;
-    if (garageId != null) {
-      garageBloc.add(ShowGarage(garageId: garageId));
-      overlays.remove(garageOverview);
-      overlays.add(garageOverview);
-    }
+
+    garageBloc.add(ShowGarage(garagePosition: garagePosition));
+    overlays.remove(garageOverview);
+    overlays.add(garageOverview);
   }
 
   void closeCityOverview() {

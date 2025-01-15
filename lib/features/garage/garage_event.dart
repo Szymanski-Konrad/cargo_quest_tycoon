@@ -45,11 +45,13 @@ class UnassignVehicle extends GarageEvent {
 }
 
 class ShowGarage extends GarageEvent {
-  ShowGarage({required this.garageId});
-  final String garageId;
+  ShowGarage({
+    required this.garagePosition,
+  });
+  final MapTilePosition garagePosition;
 
   @override
-  List<Object?> get props => <Object?>[garageId];
+  List<Object?> get props => <Object?>[garagePosition];
 }
 
 class HideGarage extends GarageEvent {

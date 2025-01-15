@@ -58,12 +58,12 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   }
 
   void _onUnlockTile(UnlockTile event, Emitter<GameState> emit) {
-    if (state.coins > 1) {
+    if (state.coins >= 1) {
       emit(state.copyWith(
         unlockedTiles: <MapTile>[...state.unlockedTiles, event.tile],
       ));
 
-      add(const GainCoins(-1));
+      add(const GainCoins(1));
     }
   }
 }

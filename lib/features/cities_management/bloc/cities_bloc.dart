@@ -148,6 +148,7 @@ class CitiesBloc extends Bloc<CitiesEvent, CitiesState> {
     emit(state.copyWith(
       cities: cities,
       currentCityId: id,
+      lockedCity: null,
     ));
   }
 }

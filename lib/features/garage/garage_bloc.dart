@@ -23,10 +23,12 @@ class GarageBloc extends Bloc<GarageEvent, GarageState> {
   void _onShowGarage(ShowGarage event, Emitter<GarageState> emit) {
     // Implement the logic for showing a garage
     final Garage? garage = state.garages.firstWhereOrNull(
-      (Garage garage) => garage.id == event.garageId,
+      (Garage garage) => garage.position == event.garagePosition,
     );
     if (garage != null) {
       emit(state.copyWith(currentGarageId: garage.id));
+    } else {
+      emit(state.copyWith(tileToBuildGarage: event.garagePosition));
     }
   }
 
@@ -41,7 +43,11 @@ class GarageBloc extends Bloc<GarageEvent, GarageState> {
     );
     final List<Garage> updatedGarages = List<Garage>.from(state.garages)
       ..add(newGarage);
-    emit(state.copyWith(garages: updatedGarages));
+    emit(state.copyWith(
+      garages: updatedGarages,
+      tileToBuildGarage: null,
+      currentGarageId: newGarage.id,
+    ));
   }
 
   void _onUpgradeGarage(GarageEventUpgrade event, Emitter<GarageState> emit) {
