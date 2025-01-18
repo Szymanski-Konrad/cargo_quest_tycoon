@@ -147,7 +147,8 @@ class TransportWorld extends World
             x: x.toDouble(),
             y: y.toDouble(),
           ),
-          isUnlocked: y == 0 && x == 0,
+          // isUnlocked: y == 0 && x == 0,
+          isUnlocked: true,
         );
 
         row.add(tile);
@@ -165,11 +166,11 @@ class TransportWorld extends World
           random.nextInt(GameConstants.mapYSize) - GameConstants.mapYHalf;
       final Vector2 position = Vector2(x.toDouble(), y.toDouble());
 
-      if (position.distanceTo(center) < 5) {
+      if (position.distanceTo(center) < 3) {
         continue; // Skip if too close to the center
       }
 
-      if (cityPositions.any((pos) => pos.distanceTo(position) < 5)) {
+      if (cityPositions.any((pos) => pos.distanceTo(position) < 3)) {
         continue; // Skip if too close to another city
       }
 
@@ -182,34 +183,31 @@ class TransportWorld extends World
     _connectCitiesWithRoad(cityPositions);
     for (final row in tiles) {
       for (final tile in row) {
-        final gameTile = buildGameTile(
-          type: tile.type,
-          gridPosition: tile.position.toVector2(),
-        );
+        final gameTile = buildGameTile(tile: tile);
         add(gameTile);
-        print('Items: ${children.length}');
       }
     }
   }
 
   GameTile buildGameTile({
-    required MapTileType type,
-    required Vector2 gridPosition,
+    required MapTile tile,
   }) {
-    return switch (type) {
+    return switch (tile.type) {
       MapTileType.city => CityTile(
-          gridPosition: gridPosition,
+          gridPosition: tile.position.toVector2(),
+          isDiscovered: tile.isUnlocked,
           cityName:
               cityNames[RandomDataGenerator.randomIndex(cityNames.length)],
         ),
       MapTileType.headquarter => GameTile(
-          type: type,
-          gridPosition: gridPosition,
-          isDiscovered: true,
+          type: tile.type,
+          gridPosition: tile.position.toVector2(),
+          isDiscovered: tile.isUnlocked,
         ),
       _ => GameTile(
-          type: type,
-          gridPosition: gridPosition,
+          type: tile.type,
+          isDiscovered: tile.isUnlocked,
+          gridPosition: tile.position.toVector2(),
         )
     };
   }

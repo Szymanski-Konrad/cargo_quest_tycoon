@@ -99,9 +99,16 @@ class _CityView extends StatelessWidget {
               color: Colors.black,
               iconSize: 40,
             ),
-            Text(selectedCity.name),
+            Expanded(
+              child: Text(
+                selectedCity.name,
+                textAlign: TextAlign.center,
+              ),
+            ),
             IconButton.filled(
-              icon: const Icon(Icons.refresh),
+              icon: const Icon(
+                Icons.refresh,
+              ),
               onPressed: () {
                 final id = selectedCity.id;
                 context.read<CitiesBloc>().add(RefreshCityCargos(cityId: id));

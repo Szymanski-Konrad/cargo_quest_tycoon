@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 enum MapTileType {
   road(Colors.blueGrey, true, 1.0),
   city(Colors.indigo, true, 2.0),
-  forest(Colors.green, true, 1.0),
+  forest(Colors.green, true, 1.5),
   mountain(Colors.deepOrange, true, 15.0),
   gravel(Colors.brown, true, 5.0),
   headquarter(Colors.amber, true, 3.0),

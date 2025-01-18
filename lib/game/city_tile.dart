@@ -12,6 +12,7 @@ class CityTile extends GameTile
     with HasWorldReference<TransportWorld>, TapCallbacks {
   CityTile({
     required super.gridPosition,
+    required super.isDiscovered,
     required this.cityName,
   }) : super(type: MapTileType.city);
 

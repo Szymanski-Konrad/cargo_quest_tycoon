@@ -27,7 +27,8 @@ class GameTile extends PositionComponent
   @override
   void onTapUp(TapUpEvent event) {
     if (isDiscovered) {
-      if (game.world.isConnectedToRoad(gridPosition)) {
+      if (type != MapTileType.road &&
+          game.world.isConnectedToRoad(gridPosition)) {
         game.openGarageOverview(gridPosition);
       } else {
         game.closeGarageOverview();
@@ -46,11 +47,7 @@ class GameTile extends PositionComponent
   @override
   void render(Canvas canvas) {
     final ui.Paint paint = Paint()
-      ..color = isDiscovered
-          ? hasGarage
-              ? Colors.limeAccent
-              : type.color
-          : Colors.grey;
+      ..color = isDiscovered ? type.color : Colors.grey;
     final ui.Rect rect = Offset.zero & size.toSize();
 
     canvas.drawRect(rect, paint);
@@ -79,11 +76,17 @@ class GameTile extends PositionComponent
         fontSize: 10,
       ))
         ..pushStyle(ui.TextStyle(color: Colors.white))
-        ..addText('${gridPosition.x},${gridPosition.y}, ${type.name}');
+        ..addText('');
 
       final ui.Paragraph paragraph = builder.build()
         ..layout(ui.ParagraphConstraints(width: size.x));
       canvas.drawParagraph(paragraph, rect.topLeft);
+      if (hasGarage) {
+        final ui.Rect garageRect = rect.deflate(16).shift(Offset(16, 16));
+        final ui.Paint paint = Paint()..color = Colors.deepPurple;
+
+        canvas.drawRect(garageRect, paint);
+      }
     }
   }
 }

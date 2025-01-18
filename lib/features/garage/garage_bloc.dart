@@ -26,9 +26,15 @@ class GarageBloc extends Bloc<GarageEvent, GarageState> {
       (Garage garage) => garage.position == event.garagePosition,
     );
     if (garage != null) {
-      emit(state.copyWith(currentGarageId: garage.id));
+      emit(state.copyWith(
+        currentGarageId: garage.id,
+        tileToBuildGarage: null,
+      ));
     } else {
-      emit(state.copyWith(tileToBuildGarage: event.garagePosition));
+      emit(state.copyWith(
+        tileToBuildGarage: event.garagePosition,
+        currentGarageId: null,
+      ));
     }
   }
 

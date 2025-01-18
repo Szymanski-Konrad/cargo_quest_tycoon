@@ -89,11 +89,27 @@ class GarageOverview extends StatelessWidget {
         color: Colors.green.shade200,
         child: Column(
           children: <Widget>[
-            Text(
-                'Garage ${selectedGarage.vehicles.length}/${selectedGarage.slots}'),
-            Text('Left vehicles: ${availableVehicles.length}'),
-            Text(
-                'Storage limit: $cargoSize / ${selectedGarage.storageLimit} kg'),
+            Row(
+              children: [
+                IconButton(
+                  onPressed: onClose,
+                  icon: const Icon(Icons.close),
+                  color: Colors.black,
+                  iconSize: 20,
+                ),
+                Expanded(
+                  child: Column(
+                    children: [
+                      Text(
+                          'Garage ${selectedGarage.vehicles.length}/${selectedGarage.slots}'),
+                      Text('Left vehicles: ${availableVehicles.length}'),
+                      Text(
+                          'Storage limit: $cargoSize / ${selectedGarage.storageLimit} kg'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
             Expanded(
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
@@ -180,7 +196,7 @@ class VehicleCard extends StatelessWidget {
                 value: vehicle.cargoSize / vehicle.maxCargoWeight,
               ),
             ),
-            if (vehicle.cargos.isNotEmpty)
+            if (vehicle.cargos.isNotEmpty && vehicle.status.isIdle)
               Row(
                 children: [
                   SizedBox(

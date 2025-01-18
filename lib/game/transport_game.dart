@@ -19,6 +19,7 @@ import '../features/game_alerts/bloc/game_alerts_bloc.dart';
 import '../features/game_alerts/bloc/game_alerts_event.dart';
 import '../features/garage/garage_bloc.dart';
 import '../features/garage/garage_event.dart';
+import '../features/garage/garage_state.dart';
 import '../features/vehicles_management/bloc/vehicles_management_bloc.dart';
 import '../features/vehicles_management/bloc/vehicles_management_event.dart';
 import '../utils/map_extension.dart';
@@ -56,6 +57,7 @@ class TransportGame extends FlameGame<TransportWorld> with DragCallbacks {
   static const double speed = 200.0;
 
   int unlockedTiles = 0;
+  int garagesCount = 0;
 
   void tryToDiscoverTile(GameTile tile) {
     if (!world.tiles
@@ -91,17 +93,25 @@ class TransportGame extends FlameGame<TransportWorld> with DragCallbacks {
       return;
     }
 
-    final cities = [
+    final vehicleGarage = garageBloc.state.currentGarage;
+    if (vehicleGarage == null) {
+      showAlert('Vehicle has no assigned garage');
+      return;
+    }
+
+    final cities = {
       vehicle.cargos.first.sourceId,
       ...vehicle.cargos.map((toElement) => toElement.targetId),
-    ];
+    }.toList();
 
-    final positions = cities
-        .map((cityId) => citiesBloc.state.cities
-            .firstWhere((city) => city.id == cityId)
-            .position
-            .toMapSizeVector())
-        .toList();
+//Add garage position here
+    final positions = [
+      vehicleGarage.position.toVector2(),
+      ...cities.map((cityId) => citiesBloc.state.cities
+          .firstWhere((city) => city.id == cityId)
+          .position
+          .toVector2())
+    ];
 
     if (world.showTruckWithRoute(vehicle, positions)) {
       vehiclesBloc.add(
@@ -134,6 +144,27 @@ class TransportGame extends FlameGame<TransportWorld> with DragCallbacks {
         }
       }
     });
+    garageBloc.stream.listen((GarageState state) {
+      if (state.garages.length > garagesCount) {
+        garagesCount = state.garages.length;
+        final worldTiles = world.children.whereType<GameTile>();
+        for (final tile in worldTiles) {
+          if (!tile.isDiscovered) {
+            continue;
+          }
+
+          if (state.garages.any(
+              (Garage item) => item.position.isGridEqual(tile.gridPosition))) {
+            tile.hasGarage = true;
+            world.tiles.discoverTile(tile.gridPosition.toMapTilePosition());
+          }
+        }
+      }
+      if (state.currentGarage != null) {
+        garagesCount++;
+      }
+    });
+
     return super.onLoad();
   }
 
