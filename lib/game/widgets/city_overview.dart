@@ -3,12 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../data/models/cargo.dart';
 import '../../data/models/city.dart';
+import '../../data/models/garage.dart';
 import '../../data/models/vehicle.dart';
 import '../../features/cities_management/bloc/cities_bloc.dart';
 import '../../features/garage/garage_bloc.dart';
-import '../../features/garage/garage_event.dart';
 import '../../features/vehicles_management/bloc/vehicles_management_bloc.dart';
 import '../../features/vehicles_management/bloc/vehicles_management_event.dart';
+import '../../widgets/city_card.dart';
 
 class CityOverview extends StatelessWidget {
   const CityOverview({
@@ -27,7 +28,7 @@ class CityOverview extends StatelessWidget {
       alignment: Alignment.bottomCenter,
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.only(bottom: 200),
+          padding: const EdgeInsets.only(bottom: 150),
           child: Container(
             width: double.infinity,
             height: 150,
@@ -116,111 +117,36 @@ class _CityView extends StatelessWidget {
             ),
           ],
         ),
+        Text(selectedCity.id),
         Expanded(
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: <Widget>[
-                for (final Cargo cargo in cargos)
-                  CargoCard(
-                    cargo: cargo,
-                    currentVehicle: vehicle,
-                  ),
-              ],
-            ),
-          ),
+          child: _CargoesListView(cargos: cargos, vehicle: vehicle),
         ),
       ],
     );
   }
 }
 
-class CargoCard extends StatelessWidget {
-  const CargoCard({
+class _CargoesListView extends StatelessWidget {
+  const _CargoesListView({
     super.key,
-    required this.cargo,
-    required this.currentVehicle,
+    required this.cargos,
+    required this.vehicle,
   });
 
-  final Cargo cargo;
-
-  final Vehicle? currentVehicle;
+  final List<Cargo> cargos;
+  final Vehicle? vehicle;
 
   @override
   Widget build(BuildContext context) {
-    final targetCity = context.select(
-      (CitiesBloc bloc) => bloc.state.cities.firstWhere(
-        (City city) => city.id == cargo.targetId,
-      ),
-    );
-    final vehicle = currentVehicle;
-    final vehicleId = vehicle?.id;
-
-    return Container(
-      padding: const EdgeInsets.all(4.0),
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: cargo.vehicleId != null && cargo.vehicleId != vehicleId
-              ? Colors.red
-              : Colors.green,
-        ),
-      ),
-      margin: const EdgeInsets.symmetric(horizontal: 8.0),
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
       child: Row(
-        children: [
-          Column(
-            children: [
-              Text(targetCity.name),
-              Text(cargo.type.name),
-              Text('${cargo.weight.toInt()} kg - ${cargo.coins?.toInt()}\$'),
-            ],
-          ),
-          IconButton(
-            onPressed: cargo.vehicleId != null && cargo.vehicleId != vehicleId
-                ? null
-                : () {
-                    if (vehicleId == null || vehicle == null) {
-                      return;
-                    }
-
-                    if (cargo.vehicleId == vehicleId) {
-                      context
-                          .read<VehiclesManagementBloc>()
-                          .add(RemoveCargoFromVehicle(
-                            vehicleId: vehicleId,
-                            cargo: cargo,
-                          ));
-                      context.read<CitiesBloc>().add(
-                            UnassignCargoFromVehicle(
-                              cityId: cargo.sourceId,
-                              cargoId: cargo.id,
-                            ),
-                          );
-                    } else {
-                      if (vehicle.maxCargoWeight <
-                          vehicle.cargoSize + cargo.weight) {
-                        debugPrint('The cargo is too heavy');
-                        return;
-                      }
-                      context
-                          .read<VehiclesManagementBloc>()
-                          .add(AddCargoToVehicle(
-                            cargo: cargo,
-                            vehicleId: vehicleId,
-                          ));
-                      context.read<CitiesBloc>().add(
-                            AssignCargoToVehicle(
-                              cityId: cargo.sourceId,
-                              cargoId: cargo.id,
-                              vehicleId: vehicleId,
-                            ),
-                          );
-                    }
-                  },
-            icon: cargo.vehicleId == vehicleId
-                ? const Icon(Icons.u_turn_left)
-                : const Icon(Icons.get_app),
-          ),
+        children: <Widget>[
+          for (final Cargo cargo in cargos)
+            CargoCard(
+              cargo: cargo,
+              currentVehicle: vehicle,
+            ),
         ],
       ),
     );

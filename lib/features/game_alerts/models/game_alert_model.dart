@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:uuid/uuid.dart';
 
 import 'game_alert_type.dart';
 
@@ -10,6 +11,7 @@ class GameAlertModel with _$GameAlertModel {
   factory GameAlertModel({
     required GameAlertType type,
     required String message,
+    String? uuid,
   }) = _GameAlertModel;
 
   const GameAlertModel._();

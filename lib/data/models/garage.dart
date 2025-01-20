@@ -18,5 +18,10 @@ class Garage with _$Garage {
     required double storageLimit,
   }) = _Garage;
 
+  const Garage._();
+
   factory Garage.fromJson(Map<String, dynamic> json) => _$GarageFromJson(json);
+
+  double get usedStorage =>
+      cargos.fold(0, (double prev, Cargo cargo) => prev + cargo.weight);
 }

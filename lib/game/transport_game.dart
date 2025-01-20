@@ -1,13 +1,10 @@
 import 'dart:async';
 
-import 'package:collection/collection.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
-import 'package:uuid/uuid.dart';
 
 import '../data/enums/vehicle_status.dart';
-import '../data/models/city.dart';
 import '../data/models/garage.dart';
 import '../data/models/map_tile.dart';
 import '../data/models/map_tile_position.dart';
@@ -33,6 +30,7 @@ const String vehicleShopOverlay = 'VehicleShop';
 const String availableTrucks = 'availableTrucks';
 const String cityOverview = 'cityOverview';
 const String garageOverview = 'garageOverview';
+const String garageCargoOverview = 'garageCargoOverview';
 
 class TransportGame extends FlameGame<TransportWorld> with DragCallbacks {
   TransportGame({
@@ -62,7 +60,7 @@ class TransportGame extends FlameGame<TransportWorld> with DragCallbacks {
   void tryToDiscoverTile(GameTile tile) {
     if (!world.tiles
         .isAnyNeighborDiscovered(tile.gridPosition.toMapTilePosition())) {
-      alertsBloc.add(GameAlertNoNeighbourTileDiscovered(const Uuid().v4()));
+      alertsBloc.add(const GameAlertNoNeighbourTileDiscovered());
       return;
     }
 
@@ -83,11 +81,28 @@ class TransportGame extends FlameGame<TransportWorld> with DragCallbacks {
     gameBloc.add(GainCoins(cargoRevenue.toInt()));
     alertsBloc.add(GameAlertTruckArrived(vehicle.name));
     alertsBloc.add(GameAlertGainCoins(cargoRevenue.toInt()));
+    final vehicleGarageId = vehicle.garageId;
+    if (vehicleGarageId != null) {
+      final comingCargo = vehicle.cargos
+          .where((item) => item.sourceId != vehicleGarageId)
+          .toList();
+
+      final cargos = comingCargo
+          .map((item) => item.copyWith(sourceId: vehicleGarageId))
+          .toList();
+
+      garageBloc.add(
+        AddCargoToGarage(
+          garageId: vehicleGarageId,
+          cargos: cargos,
+        ),
+      );
+    }
     vehiclesBloc.add(UpdateVehicleStatus(vehicle.id, VehicleStatus.idle));
     vehiclesBloc.add(ClearVehicleCargo(vehicleId: vehicle.id));
   }
 
-  void sendTruck(Vehicle vehicle) {
+  void sendTruck(Vehicle vehicle, {bool transportToGarage = true}) {
     if (vehicle.cargos.isEmpty) {
       showAlert('Vehicle has no cargo');
       return;
@@ -99,28 +114,42 @@ class TransportGame extends FlameGame<TransportWorld> with DragCallbacks {
       return;
     }
 
-    final cities = {
-      vehicle.cargos.first.sourceId,
-      ...vehicle.cargos.map((toElement) => toElement.targetId),
+    final cargosToGarage = vehicle.cargos
+        .where((item) => item.sourceId != vehicleGarage.id)
+        .toList();
+
+    final cargosToDestination =
+        vehicle.cargos.where((item) => item.sourceId == vehicleGarage.id);
+
+    final cityIds = {
+      ...cargosToGarage.map((toElement) => toElement.sourceId),
+      ...cargosToDestination.map((toElement) => toElement.targetId),
     }.toList();
 
-//Add garage position here
     final positions = [
       vehicleGarage.position.toVector2(),
-      ...cities.map((cityId) => citiesBloc.state.cities
+      ...cityIds.map((cityId) => citiesBloc.state.cities
           .firstWhere((city) => city.id == cityId)
           .position
-          .toVector2())
+          .toVector2()),
+      vehicleGarage.position.toVector2(),
     ];
 
     if (world.showTruckWithRoute(vehicle, positions)) {
       vehiclesBloc.add(
-        UpdateVehicleStatus(vehicle.id, VehicleStatus.inTransit),
+        UpdateVehicleStatus(
+          vehicle.id,
+          VehicleStatus.inTransit,
+        ),
       );
       for (final cargo in vehicle.cargos) {
         citiesBloc.add(RemoveCargoFromCity(
           cityId: cargo.sourceId,
           cargoId: cargo.id,
+        ));
+        garageBloc.add(RemoveCargoFromGarage(
+          garageId: cargo.sourceId,
+          cargoIds: [cargo.id],
         ));
       }
     }
@@ -190,7 +219,11 @@ class TransportGame extends FlameGame<TransportWorld> with DragCallbacks {
       y: garageCoords.y,
     );
 
-    garageBloc.add(ShowGarage(garagePosition: garagePosition));
+    garageBloc.add(ShowGarage(
+      garagePosition: garagePosition,
+      onNoGarage: () => overlays.remove(cityOverview),
+    ));
+    citiesBloc.add(const CloseCity());
     overlays.remove(garageOverview);
     overlays.add(garageOverview);
   }

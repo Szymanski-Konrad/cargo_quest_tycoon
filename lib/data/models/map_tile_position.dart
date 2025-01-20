@@ -1,8 +1,6 @@
 import 'package:flame/components.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import 'map_tile.dart';
-
 part 'map_tile_position.freezed.dart';
 part 'map_tile_position.g.dart';
 

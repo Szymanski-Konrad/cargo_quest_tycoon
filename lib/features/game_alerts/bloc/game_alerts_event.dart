@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:uuid/uuid.dart';
 
 abstract class GameAlertEvent extends Equatable {
   const GameAlertEvent();
@@ -25,9 +24,13 @@ final class GameAlertTruckArrived extends GameAlertEvent {
 }
 
 final class GameAlertNoNeighbourTileDiscovered extends GameAlertEvent {
-  const GameAlertNoNeighbourTileDiscovered(this.uuid);
-  final String uuid;
+  const GameAlertNoNeighbourTileDiscovered();
+}
 
-  @override
-  List<Object> get props => [uuid];
+final class GameAlertNoEnoughSpaceInVehicle extends GameAlertEvent {
+  const GameAlertNoEnoughSpaceInVehicle();
+}
+
+final class GameAlertNoEnoughSpaceInGarage extends GameAlertEvent {
+  const GameAlertNoEnoughSpaceInGarage();
 }

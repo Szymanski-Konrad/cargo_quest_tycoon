@@ -1,10 +1,13 @@
+import 'dart:ui';
+
 import 'package:equatable/equatable.dart';
 
+import '../../data/models/cargo.dart';
 import '../../data/models/map_tile_position.dart';
 
 sealed class GarageEvent extends Equatable {
   @override
-  List<Object?> get props => <Object?>[];
+  List<Object?> get props => [];
 }
 
 class GaragesEventBuildNew extends GarageEvent {
@@ -16,7 +19,7 @@ class GaragesEventBuildNew extends GarageEvent {
   final MapTilePosition position;
 
   @override
-  List<Object?> get props => <Object?>[garageName, position];
+  List<Object?> get props => [garageName, position];
 }
 
 class GarageEventUpgrade extends GarageEvent {
@@ -24,7 +27,7 @@ class GarageEventUpgrade extends GarageEvent {
   final String garageId;
 
   @override
-  List<Object?> get props => <Object?>[garageId];
+  List<Object?> get props => [garageId];
 }
 
 class AssignVehicleToGarage extends GarageEvent {
@@ -33,7 +36,7 @@ class AssignVehicleToGarage extends GarageEvent {
   final String vehicleId;
 
   @override
-  List<Object?> get props => <Object?>[garageId, vehicleId];
+  List<Object?> get props => [garageId, vehicleId];
 }
 
 class UnassignVehicle extends GarageEvent {
@@ -41,24 +44,26 @@ class UnassignVehicle extends GarageEvent {
   final String vehicleId;
 
   @override
-  List<Object?> get props => <Object?>[vehicleId];
+  List<Object?> get props => [vehicleId];
 }
 
 class ShowGarage extends GarageEvent {
   ShowGarage({
     required this.garagePosition,
+    required this.onNoGarage,
   });
   final MapTilePosition garagePosition;
+  final VoidCallback onNoGarage;
 
   @override
-  List<Object?> get props => <Object?>[garagePosition];
+  List<Object?> get props => [garagePosition, onNoGarage];
 }
 
 class HideGarage extends GarageEvent {
   HideGarage();
 
   @override
-  List<Object?> get props => <Object?>[];
+  List<Object?> get props => [];
 }
 
 class ChangeVehicle extends GarageEvent {
@@ -67,4 +72,22 @@ class ChangeVehicle extends GarageEvent {
 
   @override
   List<Object?> get props => [vehicleId];
+}
+
+class AddCargoToGarage extends GarageEvent {
+  AddCargoToGarage({required this.garageId, required this.cargos});
+  final String garageId;
+  final List<Cargo> cargos;
+
+  @override
+  List<Object> get props => [garageId, cargos];
+}
+
+class RemoveCargoFromGarage extends GarageEvent {
+  RemoveCargoFromGarage({required this.garageId, required this.cargoIds});
+  final String garageId;
+  final List<String> cargoIds;
+
+  @override
+  List<Object> get props => [garageId, cargoIds];
 }

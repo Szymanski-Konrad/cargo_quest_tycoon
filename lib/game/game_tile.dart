@@ -32,7 +32,6 @@ class GameTile extends PositionComponent
         game.openGarageOverview(gridPosition);
       } else {
         game.closeGarageOverview();
-        print('Tile ${type} not connected to road');
       }
       return;
     }

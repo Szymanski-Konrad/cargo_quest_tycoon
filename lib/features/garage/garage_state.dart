@@ -22,4 +22,7 @@ class GarageState with _$GarageState {
 
   Garage? get currentGarage =>
       garages.firstWhereOrNull((Garage garage) => garage.id == currentGarageId);
+
+  Garage? garageById(String? id) =>
+      garages.firstWhereOrNull((Garage garage) => garage.id == id);
 }

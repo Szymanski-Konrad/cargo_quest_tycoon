@@ -4,4 +4,6 @@ enum GameAlertType {
   notEnoughFuel,
   notEnoughCoins,
   noNeighbourDiscovered,
+  noEnoughSpaceInGarage,
+  noEnoughSpaceInVehicle,
 }

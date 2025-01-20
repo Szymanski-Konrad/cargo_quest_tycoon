@@ -97,12 +97,14 @@ class AddCargoToVehicle extends VehiclesManagementEvent {
   const AddCargoToVehicle({
     required this.vehicleId,
     required this.cargo,
+    required this.garageId,
   });
   final String vehicleId;
+  final String garageId;
   final Cargo cargo;
 
   @override
-  List<Object> get props => [vehicleId, cargo];
+  List<Object> get props => [vehicleId, cargo, garageId];
 }
 
 class RemoveCargoFromVehicle extends VehiclesManagementEvent {

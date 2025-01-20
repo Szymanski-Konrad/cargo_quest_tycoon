@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../data/models/cargo.dart';
 import '../../data/models/garage.dart';
 import 'garage_event.dart';
 import 'garage_state.dart';
@@ -14,6 +15,8 @@ class GarageBloc extends Bloc<GarageEvent, GarageState> {
     on<UnassignVehicle>(_onUnassignVehicle);
     on<ShowGarage>(_onShowGarage);
     on<ChangeVehicle>(_onChangeVehicle);
+    on<AddCargoToGarage>(_onAddCargoToGarage);
+    on<RemoveCargoFromGarage>(_onRemoveCargoFromGarage);
   }
 
   void _onChangeVehicle(ChangeVehicle event, Emitter<GarageState> emit) {
@@ -31,6 +34,7 @@ class GarageBloc extends Bloc<GarageEvent, GarageState> {
         tileToBuildGarage: null,
       ));
     } else {
+      event.onNoGarage.call();
       emit(state.copyWith(
         tileToBuildGarage: event.garagePosition,
         currentGarageId: null,
@@ -89,5 +93,38 @@ class GarageBloc extends Bloc<GarageEvent, GarageState> {
       return garage;
     }).toList();
     emit(state.copyWith(garages: updatedGarages));
+  }
+
+  void _onRemoveCargoFromGarage(
+      RemoveCargoFromGarage event, Emitter<GarageState> emit) {
+    final List<Garage> garages = List.of(state.garages);
+    final int garageIndex = garages.indexWhere(
+      (Garage garage) => garage.id == event.garageId,
+    );
+    if (garageIndex == -1) {
+      return;
+    }
+
+    final List<Cargo> cargos = List.of(garages[garageIndex].cargos);
+    cargos.removeWhere((element) => event.cargoIds.contains(element.id));
+    final Garage garage = garages[garageIndex].copyWith(cargos: cargos);
+    garages[garageIndex] = garage;
+    emit(state.copyWith(garages: garages));
+  }
+
+  void _onAddCargoToGarage(AddCargoToGarage event, Emitter<GarageState> emit) {
+    final List<Garage> garages = List.of(state.garages);
+    final int garageIndex = garages.indexWhere(
+      (Garage garage) => garage.id == event.garageId,
+    );
+    if (garageIndex == -1) {
+      return;
+    }
+
+    final List<Cargo> cargos = List.of(garages[garageIndex].cargos);
+    cargos.addAll(event.cargos);
+    final Garage garage = garages[garageIndex].copyWith(cargos: cargos);
+    garages[garageIndex] = garage;
+    emit(state.copyWith(garages: garages));
   }
 }

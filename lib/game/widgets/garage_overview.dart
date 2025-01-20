@@ -4,11 +4,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/models/cargo.dart';
 import '../../data/models/garage.dart';
 import '../../data/models/vehicle.dart';
+import '../../features/cities_management/bloc/cities_bloc.dart';
 import '../../features/garage/garage_bloc.dart';
 import '../../features/garage/garage_event.dart';
 import '../../features/vehicles_management/bloc/vehicles_management_bloc.dart';
 import '../../features/vehicles_management/bloc/vehicles_management_event.dart';
 import '../../game_view.dart';
+import '../../widgets/city_card.dart';
 
 class GarageOverview extends StatelessWidget {
   const GarageOverview({
@@ -26,6 +28,10 @@ class GarageOverview extends StatelessWidget {
       (GarageBloc bloc) => bloc.state.currentGarage,
     );
 
+    final isCitySelected = context.select(
+      (CitiesBloc bloc) => bloc.state.currentCity != null,
+    );
+
     if (selectedGarage == null) {
       final position =
           context.select((GarageBloc bloc) => bloc.state.tileToBuildGarage);
@@ -33,7 +39,7 @@ class GarageOverview extends StatelessWidget {
       return Align(
         alignment: Alignment.bottomLeft,
         child: Container(
-          height: 200,
+          height: 150,
           width: double.infinity,
           color: Colors.green.shade200,
           child: Row(
@@ -82,10 +88,13 @@ class GarageOverview extends StatelessWidget {
       (GarageBloc bloc) => bloc.state.selectedVehicleId,
     );
 
+    final vehicle = context.select((VehiclesManagementBloc bloc) =>
+        bloc.state.getVehicleById(currentVehicleId));
+
     return Align(
       alignment: Alignment.bottomLeft,
       child: Container(
-        height: 200,
+        height: isCitySelected ? 150 : 300,
         color: Colors.green.shade200,
         child: Column(
           children: <Widget>[
@@ -102,14 +111,35 @@ class GarageOverview extends StatelessWidget {
                     children: [
                       Text(
                           'Garage ${selectedGarage.vehicles.length}/${selectedGarage.slots}'),
-                      Text('Left vehicles: ${availableVehicles.length}'),
                       Text(
                           'Storage limit: $cargoSize / ${selectedGarage.storageLimit} kg'),
+                      Text('UUID: ${selectedGarage.id}'),
                     ],
                   ),
                 ),
               ],
             ),
+            if (!isCitySelected) ...[
+              Expanded(
+                child: selectedGarage.cargos.isEmpty
+                    ? const Center(child: Text('No cargos'))
+                    : ListView(
+                        scrollDirection: Axis.horizontal,
+                        children: selectedGarage.cargos
+                            .map((Cargo cargo) => CargoCard(
+                                  cargo: cargo,
+                                  currentVehicle: vehicle,
+                                ))
+                            .toList(),
+                      ),
+              ),
+              const Divider(
+                color: Colors.black,
+                indent: 32.0,
+                endIndent: 32.0,
+                thickness: 2.0,
+              ),
+            ],
             Expanded(
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
@@ -128,7 +158,10 @@ class GarageOverview extends StatelessWidget {
                           builder: (context) => const NonAssignedVehicles(),
                         );
                       },
-                      child: const Icon(Icons.add),
+                      child: Container(
+                        width: MediaQuery.of(context).size.width * 0.2,
+                        child: const Icon(Icons.add),
+                      ),
                     );
                   }
 
@@ -172,26 +205,29 @@ class VehicleCard extends StatelessWidget {
     return GestureDetector(
       onTap: () =>
           context.read<GarageBloc>().add(ChangeVehicle(vehicleId: vehicle.id)),
-      child: Padding(
+      child: Container(
         padding: const EdgeInsets.all(8.0),
+        width: MediaQuery.of(context).size.width * 0.2,
         child: Column(
           children: [
             Icon(
               isCurrentVehicle ? Icons.car_crash : Icons.directions_car,
               color: isCurrentVehicle ? Colors.white : null,
+              size: 16.0,
             ),
-            Text(vehicle.name),
+            Text(
+              vehicle.name,
+              maxLines: 1,
+            ),
             SizedBox(
-              width: 50,
               height: 6,
               child: LinearProgressIndicator(
                 value: vehicle.currentFuelLevel / vehicle.fuelCapacity,
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 2),
             SizedBox(
-              width: 50,
-              height: 10,
+              height: 6,
               child: LinearProgressIndicator(
                 value: vehicle.cargoSize / vehicle.maxCargoWeight,
               ),
@@ -199,26 +235,30 @@ class VehicleCard extends StatelessWidget {
             if (vehicle.cargos.isNotEmpty && vehicle.status.isIdle)
               Row(
                 children: [
-                  SizedBox(
-                    height: 32,
-                    child: IconButton(
-                      onPressed: () {
-                        onSendVehicle(vehicle);
-                      },
-                      iconSize: 20.0,
-                      icon: const Icon(Icons.drive_file_move),
+                  Expanded(
+                    child: SizedBox(
+                      // height: 32,
+                      child: IconButton(
+                        onPressed: () {
+                          onSendVehicle(vehicle);
+                        },
+                        iconSize: 16.0,
+                        icon: const Icon(Icons.drive_file_move),
+                      ),
                     ),
                   ),
-                  SizedBox(
-                    height: 32,
-                    child: IconButton(
-                      onPressed: () {
-                        context
-                            .read<VehiclesManagementBloc>()
-                            .add(ClearVehicleCargo(vehicleId: vehicleId));
-                      },
-                      iconSize: 20.0,
-                      icon: const Icon(Icons.clear),
+                  Expanded(
+                    child: SizedBox(
+                      // height: 32,
+                      child: IconButton(
+                        onPressed: () {
+                          context
+                              .read<VehiclesManagementBloc>()
+                              .add(ClearVehicleCargo(vehicleId: vehicleId));
+                        },
+                        iconSize: 16.0,
+                        icon: const Icon(Icons.clear),
+                      ),
                     ),
                   ),
                 ],

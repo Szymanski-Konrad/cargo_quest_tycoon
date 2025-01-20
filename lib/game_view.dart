@@ -68,16 +68,11 @@ class GameView extends StatelessWidget {
                   ),
                 );
               },
-              // initialActiveOverlays: const [
-              //   garageOverview,
-              // ],
               overlayBuilderMap: {
                 cityOverview: (BuildContext context, TransportGame game) =>
                     CityOverview(
                       onClose: () => game.overlays.remove(cityOverview),
                     ),
-                availableTrucks: (BuildContext context, Object? game) =>
-                    Container(),
                 garageOverview: (BuildContext context, TransportGame game) =>
                     GarageOverview(
                       onClose: () => game.overlays.remove(garageOverview),
