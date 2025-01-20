@@ -112,8 +112,7 @@ class GarageOverview extends StatelessWidget {
                       Text(
                           'Garage ${selectedGarage.vehicles.length}/${selectedGarage.slots}'),
                       Text(
-                          'Storage limit: $cargoSize / ${selectedGarage.storageLimit} kg'),
-                      Text('UUID: ${selectedGarage.id}'),
+                          'Storage: $cargoSize / ${selectedGarage.storageLimit} kg'),
                     ],
                   ),
                 ),

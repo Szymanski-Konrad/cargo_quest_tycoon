@@ -47,7 +47,7 @@ class GarageBloc extends Bloc<GarageEvent, GarageState> {
     final Garage newGarage = Garage(
       id: const Uuid().v4(),
       slots: 5,
-      storageLimit: 1000,
+      storageLimit: 100,
       position: event.position,
       name: event.garageName,
     );

@@ -117,7 +117,6 @@ class _CityView extends StatelessWidget {
             ),
           ],
         ),
-        Text(selectedCity.id),
         Expanded(
           child: _CargoesListView(cargos: cargos, vehicle: vehicle),
         ),

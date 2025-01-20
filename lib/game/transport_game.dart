@@ -73,7 +73,9 @@ class TransportGame extends FlameGame<TransportWorld> with DragCallbacks {
   }
 
   void truckArrived(Vehicle vehicle) {
-    final cargoRevenue = vehicle.cargos.fold<double>(
+    final finishedCargos =
+        vehicle.cargos.where((item) => item.sourceId == vehicle.garageId);
+    final cargoRevenue = finishedCargos.fold<double>(
       0.0,
       (prev, curr) => prev + (curr.coins ?? 0.0),
     );
@@ -275,7 +277,7 @@ class TransportGame extends FlameGame<TransportWorld> with DragCallbacks {
     for (final truck in idleTrucks) {
       if (stationsBloc.state.primary.currentFuelLevel > vehicleFuelRatio) {
         if (!truck.isFullTank()) {
-          vehiclesBloc.add(RefillVehicle(truck.id, vehicleFuelRatio * 10));
+          vehiclesBloc.add(RefillVehicle(truck.id, vehicleFuelRatio));
           stationsBloc.add(FuelStationsEventRefillVehicle(
             '',
             vehicleFuelRatio,

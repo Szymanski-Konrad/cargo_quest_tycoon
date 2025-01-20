@@ -44,7 +44,7 @@ class GameView extends StatelessWidget {
               SnackBar(
                 behavior: SnackBarBehavior.floating,
                 content: Text(alert.message),
-                duration: const Duration(seconds: 2),
+                duration: const Duration(seconds: 1),
               ),
             );
           }

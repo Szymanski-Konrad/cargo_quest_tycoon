@@ -11,6 +11,7 @@ import '../features/garage/garage_bloc.dart';
 import '../features/vehicles_management/bloc/vehicles_management_bloc.dart';
 import '../features/vehicles_management/bloc/vehicles_management_event.dart';
 
+//TODO: Rename file name
 class CargoCard extends StatelessWidget {
   const CargoCard({
     super.key,
@@ -45,15 +46,14 @@ class CargoCard extends StatelessWidget {
         ),
       ),
       margin: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: Row(
+      child: Column(
         children: [
-          Column(
-            children: [
-              Text(targetCity.name),
-              Text(cargo.type.name),
-              Text('${cargo.weight.toInt()} kg - ${cargo.coins?.toInt()}\$'),
-            ],
+          Text(
+            targetCity.name,
+            overflow: TextOverflow.ellipsis,
           ),
+          // Text(cargo.type.name),
+          Text('${cargo.weight.toInt()} - ${cargo.coins?.toInt()}'),
           IconButton(
             onPressed: cargo.vehicleId != null && cargo.vehicleId != vehicleId
                 ? null
@@ -84,14 +84,16 @@ class CargoCard extends StatelessWidget {
                         debugPrint('The cargo is too heavy');
                         return;
                       }
-                      if (vehicleGarage.usedStorage +
-                              vehicle.cargoSize +
-                              cargo.weight >
-                          vehicleGarage.storageLimit) {
+                      if (cargo.sourceId != vehicleGarage.id &&
+                          vehicleGarage.usedStorage +
+                                  vehicle.cargoSize +
+                                  cargo.weight >
+                              vehicleGarage.storageLimit) {
                         debugPrint('Garage cannot handle this cargo');
                         context.read<GameAlertsBloc>().add(
                               const GameAlertNoEnoughSpaceInGarage(),
                             );
+                        return;
                       }
                       context
                           .read<VehiclesManagementBloc>()
