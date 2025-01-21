@@ -10,7 +10,7 @@ import '../../features/garage/garage_event.dart';
 import '../../features/vehicles_management/bloc/vehicles_management_bloc.dart';
 import '../../features/vehicles_management/bloc/vehicles_management_event.dart';
 import '../../game_view.dart';
-import '../../widgets/city_card.dart';
+import '../../widgets/cargo_card.dart';
 
 class GarageOverview extends StatelessWidget {
   const GarageOverview({
@@ -157,7 +157,7 @@ class GarageOverview extends StatelessWidget {
                           builder: (context) => const NonAssignedVehicles(),
                         );
                       },
-                      child: Container(
+                      child: SizedBox(
                         width: MediaQuery.of(context).size.width * 0.2,
                         child: const Icon(Icons.add),
                       ),

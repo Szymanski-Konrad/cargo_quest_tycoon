@@ -57,10 +57,11 @@ class CitiesBloc extends Bloc<CitiesEvent, CitiesState> {
     );
   }
 
-  void _assignVehicleIdToCargo(
-      {required String cityId,
-      required String? vehicleId,
-      required String cargoId}) {
+  void _assignVehicleIdToCargo({
+    required String cityId,
+    required String? vehicleId,
+    required String cargoId,
+  }) {
     final List<City> cities = List.of(state.cities);
     final int cityIndex =
         state.cities.indexWhere((City element) => element.id == cityId);

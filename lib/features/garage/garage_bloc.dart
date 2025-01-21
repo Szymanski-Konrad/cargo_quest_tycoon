@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
@@ -17,6 +19,8 @@ class GarageBloc extends Bloc<GarageEvent, GarageState> {
     on<ChangeVehicle>(_onChangeVehicle);
     on<AddCargoToGarage>(_onAddCargoToGarage);
     on<RemoveCargoFromGarage>(_onRemoveCargoFromGarage);
+    on<AssignGarageCargoToVehicle>(_onAssignCargoToVehicle);
+    on<UnassignGarageCargoFromVehicle>(_onUnassignCargoFromVehicle);
   }
 
   void _onChangeVehicle(ChangeVehicle event, Emitter<GarageState> emit) {
@@ -123,6 +127,52 @@ class GarageBloc extends Bloc<GarageEvent, GarageState> {
 
     final List<Cargo> cargos = List.of(garages[garageIndex].cargos);
     cargos.addAll(event.cargos);
+    final Garage garage = garages[garageIndex].copyWith(cargos: cargos);
+    garages[garageIndex] = garage;
+    emit(state.copyWith(garages: garages));
+  }
+
+  FutureOr<void> _onAssignCargoToVehicle(
+    AssignGarageCargoToVehicle event,
+    Emitter<GarageState> emit,
+  ) {
+    _assignVehicleIdToCargo(
+      garageId: event.garageId,
+      vehicleId: event.vehicleId,
+      cargoId: event.cargoId,
+    );
+  }
+
+  FutureOr<void> _onUnassignCargoFromVehicle(
+    UnassignGarageCargoFromVehicle event,
+    Emitter<GarageState> emit,
+  ) {
+    _assignVehicleIdToCargo(
+      garageId: event.garageId,
+      vehicleId: null,
+      cargoId: event.cargoId,
+    );
+  }
+
+  void _assignVehicleIdToCargo({
+    required String garageId,
+    required String? vehicleId,
+    required String cargoId,
+  }) {
+    final List<Garage> garages = List.of(state.garages);
+    final int garageIndex =
+        garages.indexWhere((Garage element) => element.id == garageId);
+    if (garageIndex == -1) {
+      return;
+    }
+    final List<Cargo> cargos = List.of(garages[garageIndex].cargos);
+    final int cargoIndex =
+        cargos.indexWhere((Cargo element) => element.id == cargoId);
+    if (cargoIndex == -1) {
+      return;
+    }
+    final Cargo cargo = cargos[cargoIndex].copyWith(vehicleId: vehicleId);
+    cargos[cargoIndex] = cargo;
     final Garage garage = garages[garageIndex].copyWith(cargos: cargos);
     garages[garageIndex] = garage;
     emit(state.copyWith(garages: garages));

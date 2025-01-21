@@ -82,7 +82,9 @@ class TransportGame extends FlameGame<TransportWorld> with DragCallbacks {
 
     gameBloc.add(GainCoins(cargoRevenue.toInt()));
     alertsBloc.add(GameAlertTruckArrived(vehicle.name));
-    alertsBloc.add(GameAlertGainCoins(cargoRevenue.toInt()));
+    if (cargoRevenue.toInt() > 0) {
+      alertsBloc.add(GameAlertGainCoins(cargoRevenue.toInt()));
+    }
     final vehicleGarageId = vehicle.garageId;
     if (vehicleGarageId != null) {
       final comingCargo = vehicle.cargos

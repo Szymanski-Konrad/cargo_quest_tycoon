@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../data/enums/vehicle_status.dart';
 import '../data/models/cargo.dart';
 import '../data/models/city.dart';
 import '../data/models/vehicle.dart';
@@ -8,10 +9,10 @@ import '../features/cities_management/bloc/cities_bloc.dart';
 import '../features/game_alerts/bloc/game_alerts_bloc.dart';
 import '../features/game_alerts/bloc/game_alerts_event.dart';
 import '../features/garage/garage_bloc.dart';
+import '../features/garage/garage_event.dart';
 import '../features/vehicles_management/bloc/vehicles_management_bloc.dart';
 import '../features/vehicles_management/bloc/vehicles_management_event.dart';
 
-//TODO: Rename file name
 class CargoCard extends StatelessWidget {
   const CargoCard({
     super.key,
@@ -29,6 +30,9 @@ class CargoCard extends StatelessWidget {
       (CitiesBloc bloc) => bloc.state.cities.firstWhere(
         (City city) => city.id == cargo.targetId,
       ),
+    );
+    final isCitySelected = context.select(
+      (CitiesBloc bloc) => bloc.state.currentCity != null,
     );
     final vehicle = currentVehicle;
     final vehicleId = vehicle?.id;
@@ -55,7 +59,8 @@ class CargoCard extends StatelessWidget {
           // Text(cargo.type.name),
           Text('${cargo.weight.toInt()} - ${cargo.coins?.toInt()}'),
           IconButton(
-            onPressed: cargo.vehicleId != null && cargo.vehicleId != vehicleId
+            onPressed: vehicle?.status == VehicleStatus.inTransit ||
+                    cargo.vehicleId != null && cargo.vehicleId != vehicleId
                 ? null
                 : () {
                     if (vehicleId == null ||
@@ -72,16 +77,27 @@ class CargoCard extends StatelessWidget {
                             vehicleId: vehicleId,
                             cargo: cargo,
                           ));
-                      context.read<CitiesBloc>().add(
-                            UnassignCargoFromVehicle(
-                              cityId: cargo.sourceId,
-                              cargoId: cargo.id,
-                            ),
-                          );
+                      if (isCitySelected) {
+                        context.read<CitiesBloc>().add(
+                              UnassignCargoFromVehicle(
+                                cityId: cargo.sourceId,
+                                cargoId: cargo.id,
+                              ),
+                            );
+                      } else {
+                        context.read<GarageBloc>().add(
+                              UnassignGarageCargoFromVehicle(
+                                garageId: vehicleGarageId,
+                                cargoId: cargo.id,
+                              ),
+                            );
+                      }
                     } else {
                       if (vehicle.maxCargoWeight <
                           vehicle.cargoSize + cargo.weight) {
-                        debugPrint('The cargo is too heavy');
+                        context.read<GameAlertsBloc>().add(
+                              const GameAlertNoEnoughSpaceInVehicle(),
+                            );
                         return;
                       }
                       if (cargo.sourceId != vehicleGarage.id &&
@@ -89,7 +105,6 @@ class CargoCard extends StatelessWidget {
                                   vehicle.cargoSize +
                                   cargo.weight >
                               vehicleGarage.storageLimit) {
-                        debugPrint('Garage cannot handle this cargo');
                         context.read<GameAlertsBloc>().add(
                               const GameAlertNoEnoughSpaceInGarage(),
                             );
@@ -102,14 +117,23 @@ class CargoCard extends StatelessWidget {
                             vehicleId: vehicleId,
                             garageId: vehicleGarageId,
                           ));
-                      context.read<CitiesBloc>().add(
-                            AssignCargoToVehicle(
-                              cityId: cargo.sourceId,
-                              cargoId: cargo.id,
-                              vehicleId: vehicleId,
-                            ),
-                          );
-                      //TODO(me): Check if cargo is in garage or city and correctly assign cargo to vehicle
+                      if (isCitySelected) {
+                        context.read<CitiesBloc>().add(
+                              AssignCargoToVehicle(
+                                cityId: cargo.sourceId,
+                                cargoId: cargo.id,
+                                vehicleId: vehicleId,
+                              ),
+                            );
+                      } else {
+                        context.read<GarageBloc>().add(
+                              AssignGarageCargoToVehicle(
+                                garageId: cargo.sourceId,
+                                cargoId: cargo.id,
+                                vehicleId: vehicleId,
+                              ),
+                            );
+                      }
                     }
                   },
             icon: cargo.vehicleId == vehicleId

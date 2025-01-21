@@ -3,13 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../data/models/cargo.dart';
 import '../../data/models/city.dart';
-import '../../data/models/garage.dart';
 import '../../data/models/vehicle.dart';
 import '../../features/cities_management/bloc/cities_bloc.dart';
 import '../../features/garage/garage_bloc.dart';
 import '../../features/vehicles_management/bloc/vehicles_management_bloc.dart';
-import '../../features/vehicles_management/bloc/vehicles_management_event.dart';
-import '../../widgets/city_card.dart';
+import '../../widgets/cargo_card.dart';
 
 class CityOverview extends StatelessWidget {
   const CityOverview({
