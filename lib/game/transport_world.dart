@@ -147,8 +147,7 @@ class TransportWorld extends World
             x: x.toDouble(),
             y: y.toDouble(),
           ),
-          // isUnlocked: y == 0 && x == 0,
-          isUnlocked: true,
+          isUnlocked: y == 0 && x == 0,
         );
 
         row.add(tile);
