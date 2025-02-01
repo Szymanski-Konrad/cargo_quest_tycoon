@@ -1,14 +1,17 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart' as flame_events;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
 
 import '../core/constants/city_names.dart';
 import '../core/constants/game_constants.dart';
 import '../data/enums/map_tile_type.dart';
+import '../data/models/json_map_tile.dart';
 import '../data/models/map_tile.dart';
 import '../data/models/map_tile_position.dart';
 import '../data/models/vehicle.dart';
@@ -34,6 +37,9 @@ class TransportWorld extends World
   /// Put vehicle on map, when it has moving
   bool showTruckWithRoute(Vehicle vehicle, List<Vector2> positions) {
     final List<PathTile> path = PathFinder(tiles).findPath(positions);
+    if (path.isEmpty) {
+      return false;
+    }
     final String pathId = const Uuid().v4();
     final PathComponent pathComponent = PathComponent(
       pathPoints: path,
@@ -127,59 +133,38 @@ class TransportWorld extends World
   Future<void> onLoad() async {
     super.onLoad();
 
-    // Generate map
-    final Vector2 center = Vector2(0, 0);
-    final int maxCities =
-        (calculateMaxCities(GameConstants.mapXSize, GameConstants.mapYSize, 5) *
-                0.8)
-            .toInt();
-
-    for (int y = -GameConstants.mapYHalf;
-        y < GameConstants.mapYSize - GameConstants.mapYHalf;
-        y++) {
-      final row = <MapTile>[];
-      for (int x = -GameConstants.mapXHalf;
-          x < GameConstants.mapXSize - GameConstants.mapXHalf;
-          x++) {
-        final tile = MapTile(
-          type: _generatePredefinedTiles(x, y) ?? _generateTileType(),
-          position: MapTilePosition(
-            x: x.toDouble(),
-            y: y.toDouble(),
+    // Load map
+    final data = await rootBundle.loadString('assets/map/map.json');
+    final jsonValue = jsonDecode(data) as List<dynamic>;
+    tiles.addAll(
+      List.generate(
+        GameConstants.mapYSize,
+        (int y) => List.generate(
+          GameConstants.mapXSize,
+          (int x) => MapTile(
+            type: MapTileType.forest,
+            position: MapTilePosition(
+              x: x.toDouble(),
+              y: y.toDouble(),
+            ),
           ),
-          isUnlocked: y == 0 && x == 0,
-        );
+        ),
+      ),
+    );
 
-        row.add(tile);
-      }
-      tiles.add(row);
+    // Populate map
+    for (final row in jsonValue) {
+      final jsonTile = JsonMapTile.fromJson(row);
+      final mapTile = MapTile(
+        position: MapTilePosition(x: jsonTile.x, y: jsonTile.y),
+        type: jsonTile.type,
+        // isUnlocked: jsonTile.type == MapTileType.headquarter,
+        isUnlocked: true,
+      );
+      tiles[jsonTile.y.toInt() + GameConstants.mapYHalf]
+          [jsonTile.x.toInt() + GameConstants.mapXHalf] = mapTile;
     }
 
-    final List<Vector2> cityPositions = [];
-    final Random random = Random();
-    while (cityPositions.length < maxCities) {
-      print('Cities position: ${cityPositions.length}, maxCities: $maxCities');
-      final int x =
-          random.nextInt(GameConstants.mapXSize) - GameConstants.mapXHalf;
-      final int y =
-          random.nextInt(GameConstants.mapYSize) - GameConstants.mapYHalf;
-      final Vector2 position = Vector2(x.toDouble(), y.toDouble());
-
-      if (position.distanceTo(center) < 3) {
-        continue; // Skip if too close to the center
-      }
-
-      if (cityPositions.any((pos) => pos.distanceTo(position) < 3)) {
-        continue; // Skip if too close to another city
-      }
-
-      cityPositions.add(position);
-      final tile = tiles[y + GameConstants.mapYHalf][x + GameConstants.mapXHalf]
-          .copyWith(type: MapTileType.city);
-      tiles[y + GameConstants.mapYHalf][x + GameConstants.mapXHalf] = tile;
-    }
-
-    _connectCitiesWithRoad(cityPositions);
     for (final row in tiles) {
       for (final tile in row) {
         final gameTile = buildGameTile(tile: tile);
@@ -195,8 +180,8 @@ class TransportWorld extends World
       MapTileType.city => CityTile(
           gridPosition: tile.position.toVector2(),
           isDiscovered: tile.isUnlocked,
-          cityName:
-              cityNames[RandomDataGenerator.randomIndex(cityNames.length)],
+          cityName: cityNames[
+              (tile.position.x + tile.position.y).toInt() % cityNames.length],
         ),
       MapTileType.headquarter => GameTile(
           type: tile.type,
