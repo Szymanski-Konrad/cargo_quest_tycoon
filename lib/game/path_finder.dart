@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import '../core/constants/game_constants.dart';
 import '../data/enums/map_tile_type.dart';
 import '../data/models/map_tile.dart';
+import 'transport_game.dart';
+import 'utils/vector2_extension.dart';
 
 class PathTile {
   PathTile(this.position, this.type);
@@ -24,6 +26,9 @@ class PathNode {
 
   // Total cost
   double get f => g + h;
+
+  String get path =>
+      '[${position.x.toInt()}, ${position.y.toInt()}] -> ${parent?.path}';
 
   // For HashSet comparison
   @override
@@ -74,18 +79,17 @@ class PathFinder {
       return <PathTile>[];
     }
 
-    final HashSet<PathNode> openSet = HashSet<PathNode>();
-    final HashSet<PathNode> closedSet = HashSet<PathNode>();
+    final openSet = HashSet<PathNode>();
+    final closedSet = HashSet<PathNode>();
 
     openSet.add(PathNode(start, 0, _calculateHeuristic(start, end), null));
 
     while (openSet.isNotEmpty) {
       // Get node with lowest f cost
-      final PathNode current =
-          openSet.reduce((PathNode a, PathNode b) => a.f < b.f ? a : b);
+      final current = openSet.reduce((a, b) => a.f < b.f ? a : b);
 
       // Check if we reached the end
-      if ((current.position - end).length < 0.1) {
+      if ((current.position - end).length <= 1) {
         return _reconstructPath(current);
       }
 
@@ -94,8 +98,6 @@ class PathFinder {
 
       // Check all neighbors
       for (final PathNode neighbor in _getNeighbors(current)) {
-        // TODO(me): Sprawdzić czemu nie tworzy ścieżki
-        // Skip if already evaluated
         if (closedSet.contains(neighbor)) {
           continue;
         }
@@ -118,6 +120,8 @@ class PathFinder {
       }
     }
 
+    print('No path found');
+
     return <PathTile>[]; // No path found
   }
 
@@ -128,6 +132,7 @@ class PathFinder {
 
   List<PathNode> _getNeighbors(PathNode node) {
     final List<PathNode> neighbors = <PathNode>[];
+    final List<PathNode> roadAndCityNeighbors = <PathNode>[];
     final List<Vector2> directions = <Vector2>[
       Vector2(1, 0), // right
       Vector2(-1, 0), // left
@@ -148,12 +153,24 @@ class PathFinder {
           continue;
         }
 
-        neighbors.add(PathNode(
+        final PathNode neighbor = PathNode(
             newPos,
             0, // g cost will be calculated later
             0, // h cost will be calculated later
-            node));
+            node);
+
+        if (tileType == MapTileType.road || tileType == MapTileType.city) {
+          roadAndCityNeighbors.add(neighbor);
+        } else {
+          neighbors.add(neighbor);
+        }
       }
+    }
+
+    // Prioritize road and city tiles
+    if (roadAndCityNeighbors.isNotEmpty) {
+      //TODO: Rewrite
+      return roadAndCityNeighbors;
     }
 
     return neighbors;

@@ -49,7 +49,7 @@ class GameVehicle extends PositionComponent
       velocity.setValues(direction.x, direction.y);
       // TODO(me): Calculate used fuel just from actual speed and passed time [dt]
       final Vector2 positionDelta =
-          velocity * vehicle.terrainSpeed(nextPosition.type) * dt;
+          velocity * vehicle.terrainSpeed(nextPosition.type) * dt * 2;
       final Vector2 tempPosition = position.clone();
       position.add(positionDelta);
       final double distance = tempPosition.distanceTo(position);

@@ -279,10 +279,10 @@ class TransportGame extends FlameGame<TransportWorld> with DragCallbacks {
     for (final truck in idleTrucks) {
       if (stationsBloc.state.primary.currentFuelLevel > vehicleFuelRatio) {
         if (!truck.isFullTank()) {
-          vehiclesBloc.add(RefillVehicle(truck.id, vehicleFuelRatio));
+          vehiclesBloc.add(RefillVehicle(truck.id, vehicleFuelRatio * 50));
           stationsBloc.add(FuelStationsEventRefillVehicle(
             '',
-            vehicleFuelRatio,
+            vehicleFuelRatio * 5,
           ));
         }
       }

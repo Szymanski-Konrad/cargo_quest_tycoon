@@ -15,12 +15,14 @@ import '../data/models/json_map_tile.dart';
 import '../data/models/map_tile.dart';
 import '../data/models/map_tile_position.dart';
 import '../data/models/vehicle.dart';
+import '../features/game_alerts/bloc/game_alerts_event.dart';
 import '../utils/map_extension.dart';
 import '../utils/path_extension.dart';
 import '../utils/random_data_generator.dart';
 import 'city_tile.dart';
 import 'game_tile.dart';
 import 'game_vehicle.dart';
+import 'multi_path_finder.dart';
 import 'path_component.dart';
 import 'path_finder.dart';
 import 'transport_game.dart';
@@ -36,7 +38,7 @@ class TransportWorld extends World
 
   /// Put vehicle on map, when it has moving
   bool showTruckWithRoute(Vehicle vehicle, List<Vector2> positions) {
-    final List<PathTile> path = PathFinder(tiles).findPath(positions);
+    final path = TwoPhasePathFinder(tiles).findPath(positions);
     if (path.isEmpty) {
       return false;
     }
@@ -51,9 +53,9 @@ class TransportWorld extends World
     final isEnoughFuel = vehicle.hasEnoughFuel(pathLength);
     final neededFuel = pathLength * vehicle.fuelPerPixel;
     if (!isEnoughFuel) {
-      // TODO(me): Show alert that there is not enough fuel
-      debugPrint(
-          'Not enough fuel, need ${neededFuel - vehicle.currentFuelLevel} more');
+      game.alertsBloc.add(
+        GameAlertNotEnoughFuel(neededFuel - vehicle.currentFuelLevel),
+      );
       return false;
     }
 

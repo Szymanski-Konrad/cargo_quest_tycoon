@@ -1,8 +1,6 @@
 import '../../data/enums/vehicle_type.dart';
 import '../../data/models/market_vehicle.dart';
 
-// TODO(me): Change values for these vehicles, especially the fuelPerPixel
-
 List<MarketVehicle> predefinedVehicles = <MarketVehicle>[
   MarketVehicle(
     name: 'Default',

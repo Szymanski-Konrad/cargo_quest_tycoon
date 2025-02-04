@@ -15,9 +15,13 @@ class GameAlertsBloc extends Bloc<GameAlertEvent, GameAlertsState> {
     on<GameAlertNoNeighbourTileDiscovered>(_onNoNeighbourTileDiscovered);
     on<GameAlertNoEnoughSpaceInGarage>(_onNoEnoughSpaceInGarage);
     on<GameAlertNoEnoughSpaceInVehicle>(_onNoEnoughSpaceInVehicle);
+    on<GameAlertNotEnoughFuel>(_onNoEnoughFuel);
   }
 
-  void _onGainCoins(GameAlertGainCoins event, Emitter<GameAlertsState> emit) {
+  void _onGainCoins(
+    GameAlertGainCoins event,
+    Emitter<GameAlertsState> emit,
+  ) {
     emit(GameAlertsState(
       gameAlert: GameAlertModel(
         type: GameAlertType.gainCoins,
@@ -28,7 +32,9 @@ class GameAlertsBloc extends Bloc<GameAlertEvent, GameAlertsState> {
   }
 
   void _onTruckArrived(
-      GameAlertTruckArrived event, Emitter<GameAlertsState> emit) {
+    GameAlertTruckArrived event,
+    Emitter<GameAlertsState> emit,
+  ) {
     emit(GameAlertsState(
       gameAlert: GameAlertModel(
         type: GameAlertType.truckArrived,
@@ -39,7 +45,9 @@ class GameAlertsBloc extends Bloc<GameAlertEvent, GameAlertsState> {
   }
 
   void _onNoNeighbourTileDiscovered(
-      GameAlertNoNeighbourTileDiscovered event, Emitter<GameAlertsState> emit) {
+    GameAlertNoNeighbourTileDiscovered event,
+    Emitter<GameAlertsState> emit,
+  ) {
     emit(GameAlertsState(
       gameAlert: GameAlertModel(
         type: GameAlertType.noNeighbourDiscovered,
@@ -50,7 +58,9 @@ class GameAlertsBloc extends Bloc<GameAlertEvent, GameAlertsState> {
   }
 
   FutureOr<void> _onNoEnoughSpaceInGarage(
-      GameAlertNoEnoughSpaceInGarage event, Emitter<GameAlertsState> emit) {
+    GameAlertNoEnoughSpaceInGarage event,
+    Emitter<GameAlertsState> emit,
+  ) {
     emit(GameAlertsState(
       gameAlert: GameAlertModel(
         type: GameAlertType.noEnoughSpaceInGarage,
@@ -61,12 +71,27 @@ class GameAlertsBloc extends Bloc<GameAlertEvent, GameAlertsState> {
   }
 
   FutureOr<void> _onNoEnoughSpaceInVehicle(
-      GameAlertNoEnoughSpaceInVehicle event, Emitter<GameAlertsState> emit) {
+    GameAlertNoEnoughSpaceInVehicle event,
+    Emitter<GameAlertsState> emit,
+  ) {
     emit(GameAlertsState(
       gameAlert: GameAlertModel(
         type: GameAlertType.noEnoughSpaceInVehicle,
         uuid: const Uuid().v4(),
         message: 'Vehicle has not enough space',
+      ),
+    ));
+  }
+
+  FutureOr<void> _onNoEnoughFuel(
+    GameAlertNotEnoughFuel event,
+    Emitter<GameAlertsState> emit,
+  ) {
+    emit(GameAlertsState(
+      gameAlert: GameAlertModel(
+        type: GameAlertType.notEnoughFuel,
+        uuid: const Uuid().v4(),
+        message: 'Not enough fuel, need ${event.fuelNeeded.toInt()} more',
       ),
     ));
   }

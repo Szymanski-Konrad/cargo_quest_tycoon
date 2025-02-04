@@ -34,3 +34,11 @@ final class GameAlertNoEnoughSpaceInVehicle extends GameAlertEvent {
 final class GameAlertNoEnoughSpaceInGarage extends GameAlertEvent {
   const GameAlertNoEnoughSpaceInGarage();
 }
+
+final class GameAlertNotEnoughFuel extends GameAlertEvent {
+  const GameAlertNotEnoughFuel(this.fuelNeeded);
+  final double fuelNeeded;
+
+  @override
+  List<Object> get props => <Object>[fuelNeeded];
+}

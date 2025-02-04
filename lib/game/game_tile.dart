@@ -75,7 +75,7 @@ class GameTile extends PositionComponent
         fontSize: 10,
       ))
         ..pushStyle(ui.TextStyle(color: Colors.white))
-        ..addText('');
+        ..addText('[${gridPosition.x.toInt()}, ${gridPosition.y.toInt()}]');
 
       final ui.Paragraph paragraph = builder.build()
         ..layout(ui.ParagraphConstraints(width: size.x));

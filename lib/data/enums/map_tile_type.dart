@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 enum MapTileType {
-  road(Colors.blueGrey, true, 1.0),
+  road(Colors.blueGrey, true, 0.0001),
   city(Colors.indigo, true, 2.0),
   forest(Colors.green, true, 1.5),
   mountain(Colors.deepOrange, true, 15.0),
