@@ -16,6 +16,22 @@ class GameAlertsBloc extends Bloc<GameAlertEvent, GameAlertsState> {
     on<GameAlertNoEnoughSpaceInGarage>(_onNoEnoughSpaceInGarage);
     on<GameAlertNoEnoughSpaceInVehicle>(_onNoEnoughSpaceInVehicle);
     on<GameAlertNotEnoughFuel>(_onNoEnoughFuel);
+    on<GameAlertSpendCoins>(_onSpendCoins);
+    on<GameAlertGainExp>(_onGainExp);
+  }
+
+  void _onGainExp(
+    GameAlertGainExp event,
+    Emitter<GameAlertsState> emit,
+  ) {
+    emit(
+      GameAlertsState(
+        gameAlert: GameAlertModel(
+          type: GameAlertType.gainExp,
+          message: 'You gained ${event.exp} EXP!',
+        ),
+      ),
+    );
   }
 
   void _onGainCoins(
@@ -92,6 +108,17 @@ class GameAlertsBloc extends Bloc<GameAlertEvent, GameAlertsState> {
         type: GameAlertType.notEnoughFuel,
         uuid: const Uuid().v4(),
         message: 'Not enough fuel, need ${event.fuelNeeded.toInt()} more',
+      ),
+    ));
+  }
+
+  FutureOr<void> _onSpendCoins(
+      GameAlertSpendCoins event, Emitter<GameAlertsState> emit) {
+    emit(GameAlertsState(
+      gameAlert: GameAlertModel(
+        type: GameAlertType.spendCoins,
+        uuid: const Uuid().v4(),
+        message: 'Your spend ${event.amount} coins',
       ),
     ));
   }

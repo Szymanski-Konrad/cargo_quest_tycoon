@@ -1,3 +1,4 @@
+//TODO: Add more types
 enum VehicleType {
   /// Ciężarówka do ładunków ogólnych
   /// General cargo truck

@@ -24,6 +24,8 @@ class GameTile extends PositionComponent
   bool isDiscovered = false;
   bool hasGarage = false;
 
+  int get unlockCost => (gridPosition.length * type.terrainCost).toInt();
+
   @override
   void onTapUp(TapUpEvent event) {
     if (isDiscovered) {
@@ -61,7 +63,7 @@ class GameTile extends PositionComponent
         fontSize: 10,
       ))
         ..pushStyle(ui.TextStyle(color: Colors.white))
-        ..addText(r'1 $');
+        ..addText('$unlockCost\$');
 
       final ui.Paragraph paragraph = builder.build()
         ..layout(ui.ParagraphConstraints(
@@ -81,7 +83,7 @@ class GameTile extends PositionComponent
         ..layout(ui.ParagraphConstraints(width: size.x));
       canvas.drawParagraph(paragraph, rect.topLeft);
       if (hasGarage) {
-        final ui.Rect garageRect = rect.deflate(16).shift(Offset(16, 16));
+        final ui.Rect garageRect = rect.deflate(16).shift(const Offset(16, 16));
         final ui.Paint paint = Paint()..color = Colors.deepPurple;
 
         canvas.drawRect(garageRect, paint);

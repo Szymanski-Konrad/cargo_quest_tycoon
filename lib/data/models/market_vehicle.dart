@@ -11,19 +11,19 @@ class MarketVehicle with _$MarketVehicle {
   factory MarketVehicle({
     required String name,
     required String model,
+    required String description,
     @Default(<VehiclePart>[]) List<VehiclePart> parts,
     required double fuelPerPixel,
     required double fuelCapacity,
 
     /// Max speed in pixels per second
     required int maxSpeed,
-
-    /// Kilograms
     required double maxCargoWeight,
-    required int cost,
-    double? premiumCost,
+    required int partsToBuild,
     required VehicleType preferredVehicleType,
     required double otherCargoTypeEffience,
+    @Default(0) int cost,
+    @Default(0) int premiumCost,
   }) = _MarketVehicle;
 
   const MarketVehicle._();

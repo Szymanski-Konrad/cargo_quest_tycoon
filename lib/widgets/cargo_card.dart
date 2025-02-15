@@ -40,108 +40,177 @@ class CargoCard extends StatelessWidget {
     final vehicleGarage = context
         .select((GarageBloc bloc) => bloc.state.garageById(vehicleGarageId));
 
-    return Container(
-      padding: const EdgeInsets.all(4.0),
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: cargo.vehicleId != null && cargo.vehicleId != vehicleId
-              ? Colors.red
-              : Colors.green,
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+      child: Container(
+        padding: const EdgeInsets.all(4.0),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: cargo.vehicleId != null && cargo.vehicleId != vehicleId
+                ? Colors.red.withOpacity(0.6)
+                : Colors.green.withOpacity(0.6),
+            width: 4,
+          ),
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              targetCity.name,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                _buildWeightValue(context, cargo),
+                const SizedBox(width: 8),
+                _buildCargoValue(context, cargo),
+              ],
+            ),
+            Center(
+              child: IconButton(
+                onPressed: vehicle?.status == VehicleStatus.inTransit ||
+                        cargo.vehicleId != null && cargo.vehicleId != vehicleId
+                    ? null
+                    : () {
+                        if (vehicleId == null ||
+                            vehicle == null ||
+                            vehicleGarageId == null ||
+                            vehicleGarage == null) {
+                          return;
+                        }
+
+                        if (cargo.vehicleId == vehicleId) {
+                          context
+                              .read<VehiclesManagementBloc>()
+                              .add(RemoveCargoFromVehicle(
+                                vehicleId: vehicleId,
+                                cargo: cargo,
+                              ));
+                          if (isCitySelected) {
+                            context.read<CitiesBloc>().add(
+                                  UnassignCargoFromVehicle(
+                                    cityId: cargo.sourceId,
+                                    cargoId: cargo.id,
+                                  ),
+                                );
+                          } else {
+                            context.read<GarageBloc>().add(
+                                  UnassignGarageCargoFromVehicle(
+                                    garageId: vehicleGarageId,
+                                    cargoId: cargo.id,
+                                  ),
+                                );
+                          }
+                        } else {
+                          if (vehicle.maxCargoWeight <
+                              vehicle.cargoSize + cargo.weight) {
+                            context.read<GameAlertsBloc>().add(
+                                  const GameAlertNoEnoughSpaceInVehicle(),
+                                );
+                            return;
+                          }
+                          if (cargo.sourceId != vehicleGarage.id &&
+                              vehicleGarage.usedStorage +
+                                      vehicle.cargoSize +
+                                      cargo.weight >
+                                  vehicleGarage.storageLimit) {
+                            context.read<GameAlertsBloc>().add(
+                                  const GameAlertNoEnoughSpaceInGarage(),
+                                );
+                            return;
+                          }
+                          context
+                              .read<VehiclesManagementBloc>()
+                              .add(AddCargoToVehicle(
+                                cargo: cargo,
+                                vehicleId: vehicleId,
+                                garageId: vehicleGarageId,
+                              ));
+                          if (isCitySelected) {
+                            context.read<CitiesBloc>().add(
+                                  AssignCargoToVehicle(
+                                    cityId: cargo.sourceId,
+                                    cargoId: cargo.id,
+                                    vehicleId: vehicleId,
+                                  ),
+                                );
+                          } else {
+                            context.read<GarageBloc>().add(
+                                  AssignGarageCargoToVehicle(
+                                    garageId: cargo.sourceId,
+                                    cargoId: cargo.id,
+                                    vehicleId: vehicleId,
+                                  ),
+                                );
+                          }
+                        }
+                      },
+                icon: Icon(
+                  cargo.vehicleId == vehicleId
+                      ? Icons.remove_circle
+                      : Icons.add_box_rounded,
+                  color:
+                      cargo.vehicleId == vehicleId ? Colors.red : Colors.green,
+                  size: 20,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
-      margin: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: Column(
-        children: [
-          Text(
-            targetCity.name,
-            overflow: TextOverflow.ellipsis,
-          ),
-          // Text(cargo.type.name),
-          Text('${cargo.weight.toInt()} - ${cargo.coins?.toInt()}'),
-          IconButton(
-            onPressed: vehicle?.status == VehicleStatus.inTransit ||
-                    cargo.vehicleId != null && cargo.vehicleId != vehicleId
-                ? null
-                : () {
-                    if (vehicleId == null ||
-                        vehicle == null ||
-                        vehicleGarageId == null ||
-                        vehicleGarage == null) {
-                      return;
-                    }
+    );
+  }
 
-                    if (cargo.vehicleId == vehicleId) {
-                      context
-                          .read<VehiclesManagementBloc>()
-                          .add(RemoveCargoFromVehicle(
-                            vehicleId: vehicleId,
-                            cargo: cargo,
-                          ));
-                      if (isCitySelected) {
-                        context.read<CitiesBloc>().add(
-                              UnassignCargoFromVehicle(
-                                cityId: cargo.sourceId,
-                                cargoId: cargo.id,
-                              ),
-                            );
-                      } else {
-                        context.read<GarageBloc>().add(
-                              UnassignGarageCargoFromVehicle(
-                                garageId: vehicleGarageId,
-                                cargoId: cargo.id,
-                              ),
-                            );
-                      }
-                    } else {
-                      if (vehicle.maxCargoWeight <
-                          vehicle.cargoSize + cargo.weight) {
-                        context.read<GameAlertsBloc>().add(
-                              const GameAlertNoEnoughSpaceInVehicle(),
-                            );
-                        return;
-                      }
-                      if (cargo.sourceId != vehicleGarage.id &&
-                          vehicleGarage.usedStorage +
-                                  vehicle.cargoSize +
-                                  cargo.weight >
-                              vehicleGarage.storageLimit) {
-                        context.read<GameAlertsBloc>().add(
-                              const GameAlertNoEnoughSpaceInGarage(),
-                            );
-                        return;
-                      }
-                      context
-                          .read<VehiclesManagementBloc>()
-                          .add(AddCargoToVehicle(
-                            cargo: cargo,
-                            vehicleId: vehicleId,
-                            garageId: vehicleGarageId,
-                          ));
-                      if (isCitySelected) {
-                        context.read<CitiesBloc>().add(
-                              AssignCargoToVehicle(
-                                cityId: cargo.sourceId,
-                                cargoId: cargo.id,
-                                vehicleId: vehicleId,
-                              ),
-                            );
-                      } else {
-                        context.read<GarageBloc>().add(
-                              AssignGarageCargoToVehicle(
-                                garageId: cargo.sourceId,
-                                cargoId: cargo.id,
-                                vehicleId: vehicleId,
-                              ),
-                            );
-                      }
-                    }
-                  },
-            icon: cargo.vehicleId == vehicleId
-                ? const Icon(Icons.u_turn_left)
-                : const Icon(Icons.get_app),
+  Widget _buildWeightValue(BuildContext context, Cargo cargo) {
+    return Row(
+      children: [
+        Text(
+          '${cargo.weight.toInt()}',
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        const Icon(
+          Icons.scale,
+          size: 16,
+          color: Colors.black,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCargoValue(BuildContext context, Cargo cargo) {
+    if (cargo.coins != null) {
+      return Row(
+        children: [
+          const Icon(
+            Icons.attach_money,
+            size: 20,
+            color: Colors.amber,
+          ),
+          Text(
+            '${cargo.coins?.toInt()}',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Colors.amber.shade700,
+                  fontWeight: FontWeight.bold,
+                ),
           ),
         ],
-      ),
-    );
+      );
+    }
+
+    if (cargo.standardCrate != null) {
+      return const Icon(Icons.inventory_2, size: 20, color: Colors.blue);
+    }
+
+    if (cargo.premiumCrate != null) {
+      return const Icon(Icons.inventory_2, size: 20, color: Colors.purple);
+    }
+
+    return const SizedBox.shrink();
   }
 }

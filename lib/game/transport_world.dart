@@ -121,16 +121,6 @@ class TransportWorld extends World
     return cellsX * cellsY;
   }
 
-  MapTileType? _generatePredefinedTiles(int x, int y) {
-    if (x == 0 && y == 0) {
-      return MapTileType.headquarter;
-    }
-    if (x >= -1 && x <= 1 && y >= -1 && y <= 1) {
-      return MapTileType.road;
-    }
-    return null;
-  }
-
   @override
   Future<void> onLoad() async {
     super.onLoad();
@@ -160,8 +150,7 @@ class TransportWorld extends World
       final mapTile = MapTile(
         position: MapTilePosition(x: jsonTile.x, y: jsonTile.y),
         type: jsonTile.type,
-        // isUnlocked: jsonTile.type == MapTileType.headquarter,
-        isUnlocked: true,
+        isUnlocked: jsonTile.type == MapTileType.headquarter,
       );
       tiles[jsonTile.y.toInt() + GameConstants.mapYHalf]
           [jsonTile.x.toInt() + GameConstants.mapXHalf] = mapTile;

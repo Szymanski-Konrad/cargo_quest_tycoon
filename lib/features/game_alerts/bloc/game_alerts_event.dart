@@ -4,7 +4,7 @@ abstract class GameAlertEvent extends Equatable {
   const GameAlertEvent();
 
   @override
-  List<Object> get props => <Object>[];
+  List<Object> get props => [];
 }
 
 final class GameAlertGainCoins extends GameAlertEvent {
@@ -12,7 +12,15 @@ final class GameAlertGainCoins extends GameAlertEvent {
   final int amount;
 
   @override
-  List<Object> get props => <Object>[amount];
+  List<Object> get props => [amount];
+}
+
+final class GameAlertSpendCoins extends GameAlertEvent {
+  const GameAlertSpendCoins(this.amount);
+  final int amount;
+
+  @override
+  List<Object> get props => [amount];
 }
 
 final class GameAlertTruckArrived extends GameAlertEvent {
@@ -20,7 +28,7 @@ final class GameAlertTruckArrived extends GameAlertEvent {
   final String name;
 
   @override
-  List<Object> get props => <Object>[name];
+  List<Object> get props => [name];
 }
 
 final class GameAlertNoNeighbourTileDiscovered extends GameAlertEvent {
@@ -40,5 +48,13 @@ final class GameAlertNotEnoughFuel extends GameAlertEvent {
   final double fuelNeeded;
 
   @override
-  List<Object> get props => <Object>[fuelNeeded];
+  List<Object> get props => [fuelNeeded];
+}
+
+final class GameAlertGainExp extends GameAlertEvent {
+  const GameAlertGainExp(this.exp);
+  final int exp;
+
+  @override
+  List<Object> get props => [exp];
 }

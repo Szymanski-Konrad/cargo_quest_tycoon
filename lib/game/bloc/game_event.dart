@@ -27,6 +27,14 @@ final class GainCoins extends GameEvent {
   List<Object> get props => <Object>[coins];
 }
 
+final class SpendCoins extends GameEvent {
+  const SpendCoins(this.coins);
+  final int coins;
+
+  @override
+  List<Object> get props => <Object>[coins];
+}
+
 final class GainRoadStars extends GameEvent {
   const GainRoadStars(this.roadStars);
   final int roadStars;
@@ -52,17 +60,19 @@ final class GainPremiumCrates extends GameEvent {
 }
 
 final class UnlockTile extends GameEvent {
-  const UnlockTile(this.tile);
+  const UnlockTile({
+    required this.tile,
+    required this.cost,
+    required this.onUnlock,
+  });
   final MapTile tile;
+  final int cost;
+  final VoidCallback onUnlock;
 
   @override
-  List<Object> get props => <Object>[tile];
-}
-
-final class ShowBuyTruckDialog extends GameEvent {
-  const ShowBuyTruckDialog();
-}
-
-final class HideBuyTruckDialog extends GameEvent {
-  const HideBuyTruckDialog();
+  List<Object> get props => [
+        tile,
+        cost,
+        onUnlock,
+      ];
 }

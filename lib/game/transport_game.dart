@@ -26,11 +26,9 @@ import 'game_tile.dart';
 import 'transport_world.dart';
 import 'utils/vector2_extension.dart';
 
-const String vehicleShopOverlay = 'VehicleShop';
-const String availableTrucks = 'availableTrucks';
 const String cityOverview = 'cityOverview';
 const String garageOverview = 'garageOverview';
-const String garageCargoOverview = 'garageCargoOverview';
+const String starterVehiclesOverlay = 'starterVehiclesOverlay';
 
 class TransportGame extends FlameGame<TransportWorld> with DragCallbacks {
   TransportGame({
@@ -69,21 +67,43 @@ class TransportGame extends FlameGame<TransportWorld> with DragCallbacks {
     final mapTile = world.tiles[(position.y - translation.y).toInt()]
         [(position.x - translation.x).toInt()];
 
-    gameBloc.add(UnlockTile(mapTile));
+    gameBloc.add(UnlockTile(
+      tile: mapTile,
+      cost: tile.unlockCost,
+      onUnlock: () {
+        alertsBloc.add(GameAlertSpendCoins(tile.unlockCost));
+      },
+    ));
   }
 
   void truckArrived(Vehicle vehicle) {
     final finishedCargos =
         vehicle.cargos.where((item) => item.sourceId == vehicle.garageId);
-    final cargoRevenue = finishedCargos.fold<double>(
-      0.0,
-      (prev, curr) => prev + (curr.coins ?? 0.0),
-    );
 
-    gameBloc.add(GainCoins(cargoRevenue.toInt()));
     alertsBloc.add(GameAlertTruckArrived(vehicle.name));
-    if (cargoRevenue.toInt() > 0) {
-      alertsBloc.add(GameAlertGainCoins(cargoRevenue.toInt()));
+    if (finishedCargos.isNotEmpty) {
+      double cargoRevenue = 0.0;
+      double exp = 0;
+      int standardCrates = 0;
+      int premiumCrates = 0;
+      for (final cargo in finishedCargos) {
+        cargoRevenue += cargo.coins ?? 0.0;
+        exp += cargo.weight * cargo.experienceFactor;
+        standardCrates += cargo.standardCrate ?? 0;
+        premiumCrates += cargo.premiumCrate ?? 0;
+      }
+      if (cargoRevenue > 0) {
+        gameBloc.add(GainCoins(cargoRevenue.toInt()));
+        alertsBloc.add(GameAlertGainCoins(cargoRevenue.toInt()));
+      }
+      if (standardCrates > 0) {
+        gameBloc.add(GainCrates(standardCrates));
+      }
+      if (premiumCrates > 0) {
+        gameBloc.add(GainPremiumCrates(premiumCrates));
+      }
+      gameBloc.add(GainExp(exp.toInt()));
+      alertsBloc.add(GameAlertGainExp(exp.toInt()));
     }
     final vehicleGarageId = vehicle.garageId;
     if (vehicleGarageId != null) {
@@ -192,9 +212,6 @@ class TransportGame extends FlameGame<TransportWorld> with DragCallbacks {
             world.tiles.discoverTile(tile.gridPosition.toMapTilePosition());
           }
         }
-      }
-      if (state.currentGarage != null) {
-        garagesCount++;
       }
     });
 

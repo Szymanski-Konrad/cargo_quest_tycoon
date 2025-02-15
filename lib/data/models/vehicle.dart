@@ -28,8 +28,7 @@ class Vehicle with _$Vehicle {
 
     /// Kilograms
     required double maxCargoWeight,
-    required int cost,
-    double? premiumCost,
+    required int value,
     String? garageId,
     required VehicleType preferredVehicleType,
     required double otherCargoTypeEffience,
@@ -127,8 +126,7 @@ class Vehicle with _$Vehicle {
       currentFuelLevel: marketVehicle.fuelCapacity,
       maxSpeed: marketVehicle.maxSpeed,
       maxCargoWeight: marketVehicle.maxCargoWeight,
-      cost: marketVehicle.cost,
-      premiumCost: marketVehicle.premiumCost,
+      value: (marketVehicle.cost * 0.5).toInt(),
       preferredVehicleType: marketVehicle.preferredVehicleType,
       otherCargoTypeEffience: marketVehicle.otherCargoTypeEffience,
     );

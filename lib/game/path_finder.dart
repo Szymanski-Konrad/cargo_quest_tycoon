@@ -7,8 +7,6 @@ import 'package:flutter/material.dart';
 import '../core/constants/game_constants.dart';
 import '../data/enums/map_tile_type.dart';
 import '../data/models/map_tile.dart';
-import 'transport_game.dart';
-import 'utils/vector2_extension.dart';
 
 class PathTile {
   PathTile(this.position, this.type);

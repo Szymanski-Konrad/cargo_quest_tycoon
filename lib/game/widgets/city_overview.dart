@@ -22,20 +22,23 @@ class CityOverview extends StatelessWidget {
     final City? selectedCity =
         context.select((CitiesBloc bloc) => bloc.state.currentCity);
 
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 150),
-          child: Container(
-            width: double.infinity,
-            height: 150,
-            color: Colors.blue.shade50,
-            child: selectedCity == null
-                ? const _BuyCityOverview()
-                : _CityView(selectedCity: selectedCity, onClose: onClose),
-          ),
+    return SafeArea(
+      child: Container(
+        width: double.infinity,
+        height: 180,
+        decoration: BoxDecoration(
+          color: Colors.blue.shade50,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 4,
+              offset: const Offset(0, -2),
+            ),
+          ],
         ),
+        child: selectedCity == null
+            ? const _BuyCityOverview()
+            : _CityView(selectedCity: selectedCity, onClose: onClose),
       ),
     );
   }
@@ -50,20 +53,64 @@ class _BuyCityOverview extends StatelessWidget {
         context.select((CitiesBloc bloc) => bloc.state.lockedCity);
 
     if (lockedCity == null) {
-      return const Center(
-        child: Text('Cannot buy this city'),
+      return Center(
+        child: Text(
+          'Cannot buy this city',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Colors.grey.shade700,
+              ),
+        ),
       );
     }
 
     return Center(
-      child: InkWell(
-        onTap: () {
-          context
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: InkWell(
+          onTap: () => context
               .read<CitiesBloc>()
-              .add(BuyNewCity(lockedCity.position, lockedCity.name));
-        },
-        splashColor: Colors.blue,
-        child: Text('Buy ${lockedCity.name} for \$1'),
+              .add(BuyNewCity(lockedCity.position, lockedCity.name)),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.location_city, color: Colors.blue.shade700),
+              const SizedBox(width: 8),
+              Text(
+                'Buy ${lockedCity.name}',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Colors.blue.shade700,
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade100,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '\$1',
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: Colors.green.shade700,
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -89,34 +136,49 @@ class _CityView extends StatelessWidget {
     final List<Cargo> cargos = selectedCity.cargos;
 
     return Column(
-      children: <Widget>[
-        Row(
-          children: <Widget>[
-            IconButton(
-              onPressed: onClose,
-              icon: const Icon(Icons.close),
-              color: Colors.black,
-              iconSize: 40,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border(
+              bottom: BorderSide(color: Colors.grey.shade200),
             ),
-            Expanded(
-              child: Text(
-                selectedCity.name,
-                textAlign: TextAlign.center,
+          ),
+          child: Row(
+            children: [
+              IconButton(
+                onPressed: onClose,
+                icon: const Icon(Icons.arrow_back_ios),
+                color: Colors.blue.shade700,
+                iconSize: 20,
               ),
-            ),
-            IconButton.filled(
-              icon: const Icon(
-                Icons.refresh,
+              Expanded(
+                child: Text(
+                  selectedCity.name,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue.shade900,
+                      ),
+                ),
               ),
-              onPressed: () {
-                final id = selectedCity.id;
-                context.read<CitiesBloc>().add(RefreshCityCargos(cityId: id));
-              },
-            ),
-          ],
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                color: Colors.blue.shade700,
+                iconSize: 20,
+                onPressed: () => context
+                    .read<CitiesBloc>()
+                    .add(RefreshCityCargos(cityId: selectedCity.id)),
+              ),
+            ],
+          ),
         ),
         Expanded(
-          child: _CargoesListView(cargos: cargos, vehicle: vehicle),
+          child: _CargoesListView(
+            cargos: selectedCity.cargos,
+            vehicle: vehicle,
+          ),
         ),
       ],
     );

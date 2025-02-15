@@ -20,6 +20,7 @@ import 'game/transport_world.dart';
 import 'game/widgets/city_overview.dart';
 import 'game/widgets/game_stats_bar.dart';
 import 'game/widgets/garage_overview.dart';
+import 'game/widgets/starting_vehicle_overlay.dart';
 
 class CargoQuestGame extends StatelessWidget {
   const CargoQuestGame({super.key});
@@ -42,9 +43,11 @@ class GameView extends StatelessWidget {
           if (alert != null) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
+                margin: const EdgeInsets.fromLTRB(64, 16, 64, 16),
                 behavior: SnackBarBehavior.floating,
+                backgroundColor: alert.type.backgroundColor,
                 content: Text(alert.message),
-                duration: const Duration(seconds: 1),
+                duration: const Duration(milliseconds: 500),
               ),
             );
           }
@@ -68,10 +71,19 @@ class GameView extends StatelessWidget {
                   ),
                 );
               },
+              initialActiveOverlays: const [starterVehiclesOverlay],
               overlayBuilderMap: {
                 cityOverview: (BuildContext context, TransportGame game) =>
-                    CityOverview(
-                      onClose: () => game.overlays.remove(cityOverview),
+                    Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Padding(
+                        padding: game.overlays.isActive(garageOverview)
+                            ? const EdgeInsets.only(bottom: 150.0)
+                            : EdgeInsets.zero,
+                        child: CityOverview(
+                          onClose: () => game.overlays.remove(cityOverview),
+                        ),
+                      ),
                     ),
                 garageOverview: (BuildContext context, TransportGame game) =>
                     GarageOverview(
@@ -80,53 +92,17 @@ class GameView extends StatelessWidget {
                         game.sendTruck(vehicle);
                       },
                     ),
+                starterVehiclesOverlay:
+                    (BuildContext context, TransportGame game) =>
+                        StarterVehiclesOverlay(
+                          onClose: () =>
+                              game.overlays.remove(starterVehiclesOverlay),
+                        ),
               },
             ),
             const GameStatsBar(),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class VehicleShop extends StatelessWidget {
-  const VehicleShop({
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 300,
-      width: 200,
-      child: Column(
-        children: [
-          IconButton(
-            onPressed: () {
-              // game.overlays.remove(vehicleShopOverlay);
-              Navigator.of(context).pop();
-            },
-            icon: const Icon(Icons.close),
-            color: Colors.black,
-            iconSize: 40,
-          ),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: predefinedVehicles
-                  .map((MarketVehicle vehicle) => ShopVehicleCard(
-                        vehicle: vehicle,
-                        onTruckBought: () {
-                          // Navigator.of(context).pop();
-                          // game.onTruckBought(vehicle);
-                          // game.overlays.remove(vehicleShopOverlay);
-                        },
-                      ))
-                  .toList(),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -143,8 +119,6 @@ class NonAssignedVehicles extends StatelessWidget {
     final nonSelectedVehicles = vehicles.where((Vehicle vehicle) {
       return vehicle.garageId == null;
     }).toList();
-
-    debugPrint('Nonassigned vehicles:  ${nonSelectedVehicles.length}');
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.5,
@@ -220,16 +194,15 @@ class ShopVehicleCard extends StatelessWidget {
   const ShopVehicleCard({
     super.key,
     required this.vehicle,
-    required this.onTruckBought,
   });
 
   final MarketVehicle vehicle;
-  final VoidCallback onTruckBought;
 
   @override
   Widget build(BuildContext context) {
-    final int currentCoins =
-        context.select((GameBloc bloc) => bloc.state.coins);
+    final int currentCoins = context.select(
+      (GameBloc bloc) => bloc.state.gameStats.coins,
+    );
     return Container(
       color: Colors.white,
       margin: const EdgeInsets.all(8.0),
@@ -247,11 +220,10 @@ class ShopVehicleCard extends StatelessWidget {
           ElevatedButton(
             onPressed: currentCoins >= vehicle.cost
                 ? () {
-                    context.read<GameBloc>().add(GainCoins(-vehicle.cost));
+                    context.read<GameBloc>().add(SpendCoins(vehicle.cost));
                     context
                         .read<VehiclesManagementBloc>()
                         .add(BuyVehicle(vehicle));
-                    onTruckBought.call();
                   }
                 : null,
             child: const Text('Buy'),
